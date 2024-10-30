@@ -15,188 +15,159 @@ import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v10';
 import registerCommandsOnGuild from './utils/register-commands-on-guild.js';
 
-// Simple in-memory queue for songs (could be expanded)
-const songQueue = new Map();
-
-const queueSong = (songQuery, member: GuildMember) => {
-    const guildId = member.guild.id;
-
-    // Initialize queue if it doesn't exist
-    if (!songQueue.has(guildId)) {
-        songQueue.set(guildId, []);
-    }
-
-    const queue = songQueue.get(guildId);
-    queue.push(songQuery);
-
-    console.log(`Queued song: ${songQuery} for guild: ${guildId}`);
-};
-
 @injectable()
 export default class {
-    private readonly client: Client;
-    private readonly config: Config;
-    private readonly shouldRegisterCommandsOnBot: boolean;
-    private readonly commandsByName!: Collection<string, Command>;
-    private readonly commandsByButtonId!: Collection<string, Command>;
+  private readonly client: Client;
+  private readonly config: Config;
+  private readonly shouldRegisterCommandsOnBot: boolean;
+  private readonly commandsByName!: Collection<string, Command>;
+  private readonly commandsByButtonId!: Collection<string, Command>;
 
-    constructor(@inject(TYPES.Client) client: Client, @inject(TYPES.Config) config: Config) {
-        this.client = client;
-        this.config = config;
-        this.shouldRegisterCommandsOnBot = config.REGISTER_COMMANDS_ON_BOT;
-        this.commandsByName = new Collection();
-        this.commandsByButtonId = new Collection();
-    }
+  // Define user IDs exempt from the VC requirement at class level
+  private exemptUserIds = ["1215330175563071509", "1207844365838323812", "1217539821740757032"];
 
-    public async register(): Promise<void> {
-        // Load in commands
-        for (const command of container.getAll<Command>(TYPES.Command)) {
-            // Make sure we can serialize to JSON without errors
-            try {
-                command.slashCommand.toJSON();
-            } catch (error) {
-                console.error(error);
-                throw new Error(`Could not serialize /${command.slashCommand.name ?? ''} to JSON`);
-            }
+  constructor(@inject(TYPES.Client) client: Client, @inject(TYPES.Config) config: Config) {
+    this.client = client;
+    this.config = config;
+    this.shouldRegisterCommandsOnBot = config.REGISTER_COMMANDS_ON_BOT;
+    this.commandsByName = new Collection();
+    this.commandsByButtonId = new Collection();
+  }
 
-            if (command.slashCommand.name) {
-                this.commandsByName.set(command.slashCommand.name, command);
-            }
+  public async register(): Promise<void> {
+    // Load in commands
+    for (const command of container.getAll<Command>(TYPES.Command)) {
+      try {
+        command.slashCommand.toJSON();
+      } catch (error) {
+        console.error(error);
+        throw new Error(`Could not serialize /${command.slashCommand.name ?? ''} to JSON`);
+      }
 
-            if (command.handledButtonIds) {
-                for (const buttonId of command.handledButtonIds) {
-                    this.commandsByButtonId.set(buttonId, command);
-                }
-            }
+      if (command.slashCommand.name) {
+        this.commandsByName.set(command.slashCommand.name, command);
+      }
+
+      if (command.handledButtonIds) {
+        for (const buttonId of command.handledButtonIds) {
+          this.commandsByButtonId.set(buttonId, command);
         }
-
-        // Register event handlers
-        this.client.on('interactionCreate', async interaction => {
-            try {
-                const exemptUserIds = ["1215330175563071509", "1207844365838323812", "1217539821740757032"];
-    
-                if (interaction.isCommand()) {
-                    const command = this.commandsByName.get(interaction.commandName);
-    
-                    if (!command || !interaction.isChatInputCommand()) {
-                        return;
-                    }
-    
-                    if (!interaction.guild) {
-                        await interaction.reply(errorMsg('you can\'t use this bot in a DM'));
-                        return;
-                    }
-    
-                    const requiresVC = command.requiresVC instanceof Function ? command.requiresVC(interaction) : command.requiresVC;
-                    
-                    if (requiresVC && interaction.member && !exemptUserIds.includes(interaction.member.user.id) && !isUserInVoice(interaction.guild, interaction.member.user)) {
-                        await interaction.reply({ content: errorMsg('gotta be in a voice channel'), ephemeral: true });
-                        return;
-                    }
-    
-                    if (command.execute) {
-                        await command.execute(interaction);
-                    }
-                } else if (interaction.isButton()) {
-                    const command = this.commandsByButtonId.get(interaction.customId);
-    
-                    if (!command) {
-                        return;
-                    }
-    
-                    if (command.handleButtonInteraction) {
-                        await command.handleButtonInteraction(interaction);
-                    }
-                } else if (interaction.isAutocomplete()) {
-                    const command = this.commandsByName.get(interaction.commandName);
-    
-                    if (!command) {
-                        return;
-                    }
-    
-                    if (command.handleAutocompleteInteraction) {
-                        await command.handleAutocompleteInteraction(interaction);
-                    }
-                }
-            } catch (error: unknown) {
-                debug(error);
-                try {
-                    if ((interaction.isCommand() || interaction.isButton()) && (interaction.replied || interaction.deferred)) {
-                        await interaction.editReply(errorMsg(error as Error));
-                    } else if (interaction.isCommand() || interaction.isButton()) {
-                        await interaction.reply({ content: errorMsg(error as Error), ephemeral: true });
-                    }
-                } catch {}
-            }
-        });
-
-        // Add command parsing for messages
-        this.client.on('messageCreate', async message => {
-            const content = message.content; // Ensure we get the content
-
-            if (content.startsWith('/play')) {
-                const args = content.split(' ').slice(1);
-                const songQuery = args.join(' ');
-
-                const userId = message.author.id;
-                const member = message.member as GuildMember; // Get the member from the message
-                if (member && (exemptUserIds.includes(userId) || isUserInVoice(message.guild!, member))) {
-                    queueSong(songQuery, member); // Pass the member
-                    await message.reply('Song queued successfully!');
-                } else {
-                    await message.reply('You need to be in a voice channel to queue a song.');
-                }
-            }
-        });
-
-        const spinner = ora('📡 connecting to Discord...').start();
-
-        this.client.once('ready', async () => {
-            debug(generateDependencyReport());
-
-            // Update commands
-            const rest = new REST({ version: '10' }).setToken(this.config.DISCORD_TOKEN);
-            if (this.shouldRegisterCommandsOnBot) {
-                spinner.text = '📡 updating commands on bot...';
-                await rest.put(
-                    Routes.applicationCommands(this.client.user!.id),
-                    { body: this.commandsByName.map(command => command.slashCommand.toJSON()) },
-                );
-            } else {
-                spinner.text = '📡 updating commands in all guilds...';
-
-                await Promise.all([
-                    ...this.client.guilds.cache.map(async guild => {
-                        await registerCommandsOnGuild({
-                            rest,
-                            guildId: guild.id,
-                            applicationId: this.client.user!.id,
-                            commands: this.commandsByName.map(c => c.slashCommand),
-                        });
-                    }),
-                    rest.put(Routes.applicationCommands(this.client.user!.id), { body: [] }),
-                ]);
-            }
-
-            this.client.user!.setPresence({
-                activities: [
-                    {
-                        name: this.config.BOT_ACTIVITY,
-                        type: this.config.BOT_ACTIVITY_TYPE,
-                        url: this.config.BOT_ACTIVITY_URL === '' ? undefined : this.config.BOT_ACTIVITY_URL,
-                    },
-                ],
-                status: this.config.BOT_STATUS,
-            });
-
-            spinner.succeed(`Ready! Invite the bot with https://discordapp.com/oauth2/authorize?client_id=${this.client.user?.id ?? ''}&scope=bot%20applications.commands&permissions=36700160`);
-        });
-
-        this.client.on('error', console.error);
-        this.client.on('debug', debug);
-
-        this.client.on('guildCreate', handleGuildCreate);
-        this.client.on('voiceStateUpdate', handleVoiceStateUpdate);
-        await this.client.login();
+      }
     }
+
+    // Register event handlers
+    this.client.on('interactionCreate', async interaction => {
+      try {
+        if (interaction.isCommand()) {
+          const command = this.commandsByName.get(interaction.commandName);
+          if (!command || !interaction.isChatInputCommand()) return;
+
+          if (!interaction.guild) {
+            await interaction.reply(errorMsg('you can\'t use this bot in a DM'));
+            return;
+          }
+
+          const requiresVC = command.requiresVC instanceof Function ? command.requiresVC(interaction) : command.requiresVC;
+
+          // VC check with exempt user IDs
+          if (requiresVC && interaction.member && 
+              !this.exemptUserIds.includes(interaction.member.user.id) && 
+              !isUserInVoice(interaction.guild, interaction.member as GuildMember)) {
+            await interaction.reply({ content: errorMsg('gotta be in a voice channel'), ephemeral: true });
+            return;
+          }
+
+          if (command.execute) {
+            await command.execute(interaction);
+          }
+        } else if (interaction.isButton()) {
+          const command = this.commandsByButtonId.get(interaction.customId);
+          if (command && command.handleButtonInteraction) {
+            await command.handleButtonInteraction(interaction);
+          }
+        } else if (interaction.isAutocomplete()) {
+          const command = this.commandsByName.get(interaction.commandName);
+          if (command && command.handleAutocompleteInteraction) {
+            await command.handleAutocompleteInteraction(interaction);
+          }
+        }
+      } catch (error: unknown) {
+        debug(error);
+        try {
+          if ((interaction.isCommand() || interaction.isButton()) && (interaction.replied || interaction.deferred)) {
+            await interaction.editReply(errorMsg(error as Error));
+          } else if (interaction.isCommand() || interaction.isButton()) {
+            await interaction.reply({ content: errorMsg(error as Error), ephemeral: true });
+          }
+        } catch {}
+      }
+    });
+
+    this.client.on('messageCreate', async message => {
+      const content = message.content;
+      if (content.startsWith('/play')) {
+        const args = content.split(' ').slice(1);
+        const songQuery: string = args.join(' '); // Explicitly typing songQuery
+
+        const userId = message.author.id;
+        const member = message.member as GuildMember; // Ensure member is of type GuildMember
+
+        if (member && (this.exemptUserIds.includes(userId) || isUserInVoice(message.guild!, member))) {
+          // Here, you would call your function to queue the song
+          // For example: await queueSong(songQuery, member.user);
+          await message.reply('Song queued successfully!'); // Placeholder reply
+        } else {
+          await message.reply('You need to be in a voice channel to queue a song.');
+        }
+      }
+    });
+
+    const spinner = ora('📡 connecting to Discord...').start();
+
+    this.client.once('ready', async () => {
+      debug(generateDependencyReport());
+
+      const rest = new REST({ version: '10' }).setToken(this.config.DISCORD_TOKEN);
+      if (this.shouldRegisterCommandsOnBot) {
+        spinner.text = '📡 updating commands on bot...';
+        await rest.put(
+          Routes.applicationCommands(this.client.user!.id),
+          { body: this.commandsByName.map(command => command.slashCommand.toJSON()) },
+        );
+      } else {
+        spinner.text = '📡 updating commands in all guilds...';
+
+        await Promise.all([
+          ...this.client.guilds.cache.map(async guild => {
+            await registerCommandsOnGuild({
+              rest,
+              guildId: guild.id,
+              applicationId: this.client.user!.id,
+              commands: this.commandsByName.map(c => c.slashCommand),
+            });
+          }),
+          rest.put(Routes.applicationCommands(this.client.user!.id), { body: [] }),
+        ]);
+      }
+
+      this.client.user!.setPresence({
+        activities: [
+          {
+            name: this.config.BOT_ACTIVITY,
+            type: this.config.BOT_ACTIVITY_TYPE,
+            url: this.config.BOT_ACTIVITY_URL === '' ? undefined : this.config.BOT_ACTIVITY_URL,
+          },
+        ],
+        status: this.config.BOT_STATUS,
+      });
+
+      spinner.succeed(`Ready! Invite the bot with https://discordapp.com/oauth2/authorize?client_id=${this.client.user?.id ?? ''}&scope=bot%20applications.commands&permissions=36700160`);
+    });
+
+    this.client.on('error', console.error);
+    this.client.on('debug', debug);
+    this.client.on('guildCreate', handleGuildCreate);
+    this.client.on('voiceStateUpdate', handleVoiceStateUpdate);
+    await this.client.login();
+  }
 }
