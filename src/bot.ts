@@ -130,26 +130,27 @@ export default class {
 
         const member = message.member as GuildMember;
 
-        // Check if the user is in a voice channel or exempt
-        if (member && (this.exemptUserIds.includes(message.author.id) || isUserInVoice(message.guild!, member))) {
-          // Find the play command
-          const command = this.commandsByName.get('play');
-          if (command && command.execute) {
-            const interactionMock = {
-              guild: message.guild,
-              user: message.author,
-              options: {
-                getString: () => songQuery,
-                getBoolean: (name: string) => false // Adjust based on your needs
-              },
-              reply: async (content: string) => await message.reply(content),
-            } as unknown as ChatInputCommandInteraction; // Cast to the appropriate type
+// Check if the user is in a voice channel or exempt
+if (member && (this.exemptUserIds.includes(message.author.id) || isUserInVoice(message.guild!, member.user))) {
+  // Find the play command
+  const command = this.commandsByName.get('play');
+  if (command && command.execute) {
+    const interactionMock = {
+      guild: message.guild,
+      user: message.author,
+      options: {
+        getString: () => songQuery,
+        getBoolean: (name: string) => false // Adjust based on your needs
+      },
+      reply: async (content: string) => await message.reply(content),
+    } as unknown as ChatInputCommandInteraction; // Cast to the appropriate type
 
-            await command.execute(interactionMock);
-          }
-        } else {
-          await message.reply('You need to be in a voice channel to queue a song.');
-        }
+    await command.execute(interactionMock);
+  }
+} else {
+  await message.reply('You need to be in a voice channel to queue a song.');
+}
+
       }
     });
 
