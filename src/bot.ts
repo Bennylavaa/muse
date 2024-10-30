@@ -58,7 +58,7 @@ export default class {
 	this.client.on('interactionCreate', async interaction => {
 	try {
 		// Define user IDs exempt from the VC requirement
-		const exemptUserIds = ["1215330175563071509", "1207844365838323812", "1217539821740757032"]; // Replace with actual exempt user IDs
+		const exemptUserIds = ["1207844365838323812", "1217539821740757032"]; // Replace with actual exempt user IDs
 	
 		if (interaction.isCommand()) {
 		const command = this.commandsByName.get(interaction.commandName);
@@ -71,13 +71,14 @@ export default class {
 			await interaction.reply(errorMsg('you can\'t use this bot in a DM'));
 			return;
 		}
-	
+
 		const requiresVC = command.requiresVC instanceof Function ? command.requiresVC(interaction) : command.requiresVC;
-		
-		// Modified VC check with exempt user IDs
-		if (requiresVC && interaction.member && !exemptUserIds.includes(interaction.member.user.id) && !isUserInVoice(interaction.guild, interaction.member.user as User)) {
-			await interaction.reply({ content: errorMsg('gotta be in a voice channel'), ephemeral: true });
-			return;
+
+		requiresVC = !exemptUserIds.includes(interaction.member.user.id);
+        
+		if (requiresVC && interaction.member && !isUserInVoice(interaction.guild, interaction.member.user as User)) {
+		    await interaction.reply({ content: errorMsg('gotta be in a voice channel'), ephemeral: true });
+		    return;
 		}
 	
 		if (command.execute) {
