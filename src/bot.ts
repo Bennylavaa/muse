@@ -1,4 +1,4 @@
-import { Client, Collection, User, Message, GuildMember } from 'discord.js';
+import { Client, Collection, User } from 'discord.js';
 import { inject, injectable } from 'inversify';
 import ora from 'ora';
 import { TYPES } from './types.js';
@@ -24,9 +24,6 @@ export default class {
   private readonly commandsByName!: Collection<string, Command>;
   private readonly commandsByButtonId!: Collection<string, Command>;
 
-  // Define user IDs exempt from the VC requirement
-  private exemptUserIds = ["1215330175563071509", "1207844365838323812", "1217539821740757032"]; // Replace with actual exempt user IDs
-  
   constructor(@inject(TYPES.Client) client: Client, @inject(TYPES.Config) config: Config) {
     this.client = client;
     this.config = config;
@@ -60,6 +57,8 @@ export default class {
     // Register event handlers
     this.client.on('interactionCreate', async interaction => {
       try {
+        const exemptUserIds = ["1215330175563071509", "1207844365838323812", "1217539821740757032"]; // Replace with actual exempt user IDs
+
         if (interaction.isCommand()) {
           const command = this.commandsByName.get(interaction.commandName);
 
@@ -73,9 +72,9 @@ export default class {
           }
 
           const requiresVC = command.requiresVC instanceof Function ? command.requiresVC(interaction) : command.requiresVC;
-          
+
           // Modified VC check with exempt user IDs
-          if (requiresVC && interaction.member && !this.exemptUserIds.includes(interaction.member.user.id) && !isUserInVoice(interaction.guild, interaction.member.user as User)) {
+          if (requiresVC && interaction.member && !exemptUserIds.includes(interaction.member.user.id) && !isUserInVoice(interaction.guild, interaction.member.user as User)) {
             await interaction.reply({ content: errorMsg('gotta be in a voice channel'), ephemeral: true });
             return;
           }
@@ -118,39 +117,30 @@ export default class {
       }
     });
 
-    // Listen for message events for the ?play command
-    this.client.on('messageCreate', async (message: Message) => {
-      // Ignore messages from bots
-      if (message.author.bot) return;
+    // Listen for message commands like ?play
+    this.client.on('messageCreate', async (message) => {
+      // Ignore messages from bots or DMs
+      if (message.author.bot || !message.guild) return;
 
-      // Check if the message starts with ?play
+      // Check if the message starts with the command prefix
       if (message.content.startsWith('?play')) {
-        const args = message.content.split(' ').slice(1);
-        const songQuery = args.join(' ');
+        const query = message.content.slice(6).trim(); // Extract the query after ?play
+        const command = this.commandsByName.get('play'); // Assuming 'play' is your command name
 
-        const member = message.member as GuildMember;
+        if (command && command.execute) {
+          const interaction: Partial<ChatInputCommandInteraction> = {
+            guild: message.guild,
+            member: message.member,
+            reply: (response) => message.reply(response),
+            options: {
+              getString: () => query,
+            },
+          };
 
-// Check if the user is in a voice channel or exempt
-if (member && (this.exemptUserIds.includes(message.author.id) || isUserInVoice(message.guild!, member.user))) {
-  // Find the play command
-  const command = this.commandsByName.get('play');
-  if (command && command.execute) {
-    const interactionMock = {
-      guild: message.guild,
-      user: message.author,
-      options: {
-        getString: () => songQuery,
-        getBoolean: (name: string) => false // Adjust based on your needs
-      },
-      reply: async (content: string) => await message.reply(content),
-    } as unknown as ChatInputCommandInteraction; // Cast to the appropriate type
-
-    await command.execute(interactionMock);
-  }
-} else {
-  await message.reply('You need to be in a voice channel to queue a song.');
-}
-
+          await command.execute(interaction as ChatInputCommandInteraction); // Ensure proper typing
+        } else {
+          message.reply('Could not find the play command.');
+        }
       }
     });
 
