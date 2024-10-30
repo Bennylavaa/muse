@@ -1,4 +1,4 @@
-import { Client, Collection, User } from 'discord.js';
+import { Client, Collection, User, Message, GuildMember } from 'discord.js';
 import { inject, injectable } from 'inversify';
 import ora from 'ora';
 import { TYPES } from './types.js';
@@ -14,6 +14,7 @@ import { generateDependencyReport } from '@discordjs/voice';
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v10';
 import registerCommandsOnGuild from './utils/register-commands-on-guild.js';
+import { ChatInputCommandInteraction } from 'discord.js';
 
 @injectable()
 export default class {
@@ -22,8 +23,10 @@ export default class {
   private readonly shouldRegisterCommandsOnBot: boolean;
   private readonly commandsByName!: Collection<string, Command>;
   private readonly commandsByButtonId!: Collection<string, Command>;
-  private otherBotId = '1217539821740757032'; // Replace with actual other bot ID
 
+  // Define user IDs exempt from the VC requirement
+  private exemptUserIds = ["1215330175563071509", "1207844365838323812", "1217539821740757032"]; // Replace with actual exempt user IDs
+  
   constructor(@inject(TYPES.Client) client: Client, @inject(TYPES.Config) config: Config) {
     this.client = client;
     this.config = config;
@@ -57,9 +60,6 @@ export default class {
     // Register event handlers
     this.client.on('interactionCreate', async interaction => {
       try {
-        // Define user IDs exempt from the VC requirement
-        const exemptUserIds = ["1215330175563071509", "1207844365838323812", this.otherBotId];
-
         if (interaction.isCommand()) {
           const command = this.commandsByName.get(interaction.commandName);
 
@@ -73,9 +73,9 @@ export default class {
           }
 
           const requiresVC = command.requiresVC instanceof Function ? command.requiresVC(interaction) : command.requiresVC;
-
+          
           // Modified VC check with exempt user IDs
-          if (requiresVC && interaction.member && !exemptUserIds.includes(interaction.member.user.id) && !isUserInVoice(interaction.guild, interaction.member.user as User)) {
+          if (requiresVC && interaction.member && !this.exemptUserIds.includes(interaction.member.user.id) && !isUserInVoice(interaction.guild, interaction.member.user as User)) {
             await interaction.reply({ content: errorMsg('gotta be in a voice channel'), ephemeral: true });
             return;
           }
@@ -118,20 +118,35 @@ export default class {
       }
     });
 
-    // Handle message events for the ?play command
-    this.client.on('messageCreate', async message => {
-      // Ignore messages from the bot itself
+    // Listen for message events for the ?play command
+    this.client.on('messageCreate', async (message: Message) => {
+      // Ignore messages from bots
       if (message.author.bot) return;
 
-      // Check for the ?play command from the other bot
-      if (message.content.startsWith('?play') && message.author.id === this.otherBotId) {
+      // Check if the message starts with ?play
+      if (message.content.startsWith('?play')) {
         const args = message.content.split(' ').slice(1);
         const songQuery = args.join(' ');
 
-        const member = message.member; // Get the member from the message
-        if (member && (exemptUserIds.includes(message.author.id) || isUserInVoice(message.guild!, member))) {
-          await queueSong(songQuery, member.user); // Ensure member is of type User
-          await message.reply('Song queued successfully!');
+        const member = message.member as GuildMember;
+
+        // Check if the user is in a voice channel or exempt
+        if (member && (this.exemptUserIds.includes(message.author.id) || isUserInVoice(message.guild!, member))) {
+          // Find the play command
+          const command = this.commandsByName.get('play');
+          if (command && command.execute) {
+            const interactionMock = {
+              guild: message.guild,
+              user: message.author,
+              options: {
+                getString: () => songQuery,
+                getBoolean: (name: string) => false // Adjust based on your needs
+              },
+              reply: async (content: string) => await message.reply(content),
+            } as unknown as ChatInputCommandInteraction; // Cast to the appropriate type
+
+            await command.execute(interactionMock);
+          }
         } else {
           await message.reply('You need to be in a voice channel to queue a song.');
         }
