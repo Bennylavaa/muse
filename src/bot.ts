@@ -58,7 +58,7 @@ export default class {
 	this.client.on('interactionCreate', async interaction => {
 	try {
 		// Define user IDs exempt from the VC requirement
-		const exemptUserIds = ["1215330175563071509", "1207844365838323812"]; // Replace with actual exempt user IDs
+		const exemptUserIds = ["1215330175563071509", "1207844365838323812", "1217539821740757032"]; // Replace with actual exempt user IDs
 	
 		if (interaction.isCommand()) {
 		const command = this.commandsByName.get(interaction.commandName);
