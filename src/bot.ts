@@ -72,13 +72,15 @@ export default class {
 			return;
 		}
 
-		const requiresVC = command.requiresVC instanceof Function ? command.requiresVC(interaction) : command.requiresVC;
+		let requiresVC = command.requiresVC instanceof Function ? command.requiresVC(interaction) : command.requiresVC;
+		
 
-		requiresVC = !exemptUserIds.includes(interaction.member.user.id);
-        
+		requiresVC = requiresVC && interaction.member !== null && !exemptUserIds.includes(interaction.member.user.id);
+		
+
 		if (requiresVC && interaction.member && !isUserInVoice(interaction.guild, interaction.member.user as User)) {
-		    await interaction.reply({ content: errorMsg('gotta be in a voice channel'), ephemeral: true });
-		    return;
+			await interaction.reply({ content: errorMsg('gotta be in a voice channel'), ephemeral: true });
+			return;
 		}
 	
 		if (command.execute) {
