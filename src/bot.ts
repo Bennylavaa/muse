@@ -1,4 +1,4 @@
-import { Client, Collection, User, Message } from 'discord.js';
+import { Client, Collection, User, Message, MessagePayload, InteractionReplyOptions } from 'discord.js';
 import { inject, injectable } from 'inversify';
 import ora from 'ora';
 import { TYPES } from './types.js';
