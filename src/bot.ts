@@ -1,4 +1,4 @@
-import { Client, Collection, User } from 'discord.js';
+import { Client, Collection, User, Message } from 'discord.js';
 import { inject, injectable } from 'inversify';
 import ora from 'ora';
 import { TYPES } from './types.js';
@@ -118,7 +118,7 @@ export default class {
     });
 
     // Listen for message commands like ?play
-    this.client.on('messageCreate', async (message) => {
+    this.client.on('messageCreate', async (message: Message) => {
       // Ignore messages from bots or DMs
       if (message.author.bot || !message.guild) return;
 
@@ -128,16 +128,17 @@ export default class {
         const command = this.commandsByName.get('play'); // Assuming 'play' is your command name
 
         if (command && command.execute) {
+          // Create a mock interaction
           const interaction: Partial<ChatInputCommandInteraction> = {
             guild: message.guild,
             member: message.member,
-            reply: (response) => message.reply(response),
+            reply: async (response) => message.reply(response), // Use message.reply directly
             options: {
               getString: () => query,
-            },
+            } as any, // Use 'any' to avoid type issues, this can be improved with better typing
           };
 
-          await command.execute(interaction as ChatInputCommandInteraction); // Ensure proper typing
+          await command.execute(interaction as ChatInputCommandInteraction);
         } else {
           message.reply('Could not find the play command.');
         }
