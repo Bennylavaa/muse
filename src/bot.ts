@@ -55,68 +55,91 @@ export default class {
 
     // Register event handlers
     // eslint-disable-next-line complexity
-	this.client.on('interactionCreate', async interaction => {
-	try {
-		// Define user IDs exempt from the VC requirement
-		const exemptUserIds = ["1215330175563071509", "1207844365838323812", "1217539821740757032"]; // Replace with actual exempt user IDs
-	
-		if (interaction.isCommand()) {
-		const command = this.commandsByName.get(interaction.commandName);
-	
-		if (!command || !interaction.isChatInputCommand()) {
-			return;
-		}
-	
-		if (!interaction.guild) {
-			await interaction.reply(errorMsg('you can\'t use this bot in a DM'));
-			return;
-		}
-	
-		const requiresVC = command.requiresVC instanceof Function ? command.requiresVC(interaction) : command.requiresVC;
-		
-		// Modified VC check with exempt user IDs
-		if (requiresVC && interaction.member && !exemptUserIds.includes(interaction.member.user.id) && !isUserInVoice(interaction.guild, interaction.member.user as User)) {
-			await interaction.reply({ content: errorMsg('gotta be in a voice channel'), ephemeral: true });
-			return;
-		}
-	
-		if (command.execute) {
-			await command.execute(interaction);
-		}
-		} else if (interaction.isButton()) {
-		const command = this.commandsByButtonId.get(interaction.customId);
-	
-		if (!command) {
-			return;
-		}
-	
-		if (command.handleButtonInteraction) {
-			await command.handleButtonInteraction(interaction);
-		}
-		} else if (interaction.isAutocomplete()) {
-		const command = this.commandsByName.get(interaction.commandName);
-	
-		if (!command) {
-			return;
-		}
-	
-		if (command.handleAutocompleteInteraction) {
-			await command.handleAutocompleteInteraction(interaction);
-		}
-		}
-	} catch (error: unknown) {
-		debug(error);
-	
-		// This can fail if the message was deleted, and we don't want to crash the whole bot
-		try {
-		if ((interaction.isCommand() || interaction.isButton()) && (interaction.replied || interaction.deferred)) {
-			await interaction.editReply(errorMsg(error as Error));
-		} else if (interaction.isCommand() || interaction.isButton()) {
-			await interaction.reply({ content: errorMsg(error as Error), ephemeral: true });
-		}
-		} catch {}
-	}
-	});
+this.client.on('interactionCreate', async interaction => {
+    try {
+        // Define user IDs exempt from the VC requirement
+        const exemptUserIds = ["1215330175563071509", "1207844365838323812", "1217539821740757032"];
+    
+        if (interaction.isCommand()) {
+            const command = this.commandsByName.get(interaction.commandName);
+    
+            if (!command || !interaction.isChatInputCommand()) {
+                return;
+            }
+    
+            if (!interaction.guild) {
+                await interaction.reply(errorMsg('you can\'t use this bot in a DM'));
+                return;
+            }
+    
+            const requiresVC = command.requiresVC instanceof Function ? command.requiresVC(interaction) : command.requiresVC;
+            
+            // Modified VC check with exempt user IDs
+            if (requiresVC && interaction.member && !exemptUserIds.includes(interaction.member.user.id) && !isUserInVoice(interaction.guild, interaction.member.user)) {
+                await interaction.reply({ content: errorMsg('gotta be in a voice channel'), ephemeral: true });
+                return;
+            }
+    
+            if (command.execute) {
+                await command.execute(interaction);
+            }
+        } else if (interaction.isButton()) {
+            const command = this.commandsByButtonId.get(interaction.customId);
+    
+            if (!command) {
+                return;
+            }
+    
+            if (command.handleButtonInteraction) {
+                await command.handleButtonInteraction(interaction);
+            }
+        } else if (interaction.isAutocomplete()) {
+            const command = this.commandsByName.get(interaction.commandName);
+    
+            if (!command) {
+                return;
+            }
+    
+            if (command.handleAutocompleteInteraction) {
+                await command.handleAutocompleteInteraction(interaction);
+            }
+        }
+    } catch (error: unknown) {
+        debug(error);
+        // This can fail if the message was deleted, and we don't want to crash the whole bot
+        try {
+            if ((interaction.isCommand() || interaction.isButton()) && (interaction.replied || interaction.deferred)) {
+                await interaction.editReply(errorMsg(error as Error));
+            } else if (interaction.isCommand() || interaction.isButton()) {
+                await interaction.reply({ content: errorMsg(error as Error), ephemeral: true });
+            }
+        } catch {}
+    }
+});
+
+// Add command parsing for messages
+this.client.on('messageCreate', async message => {
+    // Ignore messages from bots to prevent loops
+    if (message.author.bot) return;
+
+    const content = message.content.trim();
+
+    // Check if the message starts with the command prefix (e.g., "/play")
+    if (content.startsWith('/play')) {
+        const args = content.split(' ').slice(1); // Get the arguments after the command
+        const songQuery = args.join(' '); // Join arguments to form the song query
+
+        const userId = message.author.id; // Get the ID of the user (or bot) sending the message
+        if (exemptUserIds.includes(userId) || isUserInVoice(message.guild, message.member)) {
+            // Call your existing queue logic here
+            await queueSong(songQuery, message.member); // Implement your queue logic
+            await message.reply('Song queued successfully!');
+        } else {
+            await message.reply('You need to be in a voice channel to queue a song.');
+        }
+    }
+});
+
 
     const spinner = ora('📡 connecting to Discord...').start();
 
