@@ -1,4 +1,4 @@
-import { Client, Collection, User, GuildMember } from 'discord.js';
+import { Client, Collection, User } from 'discord.js';
 import { inject, injectable } from 'inversify';
 import ora from 'ora';
 import { TYPES } from './types.js';
@@ -22,9 +22,7 @@ export default class {
   private readonly shouldRegisterCommandsOnBot: boolean;
   private readonly commandsByName!: Collection<string, Command>;
   private readonly commandsByButtonId!: Collection<string, Command>;
-
-  // Define user IDs exempt from the VC requirement at class level
-  private exemptUserIds = ["1215330175563071509", "1207844365838323812", "1217539821740757032"];
+  private otherBotId = '1217539821740757032'; // Replace with actual other bot ID
 
   constructor(@inject(TYPES.Client) client: Client, @inject(TYPES.Config) config: Config) {
     this.client = client;
@@ -37,6 +35,7 @@ export default class {
   public async register(): Promise<void> {
     // Load in commands
     for (const command of container.getAll<Command>(TYPES.Command)) {
+      // Make sure we can serialize to JSON without errors
       try {
         command.slashCommand.toJSON();
       } catch (error) {
@@ -58,9 +57,15 @@ export default class {
     // Register event handlers
     this.client.on('interactionCreate', async interaction => {
       try {
+        // Define user IDs exempt from the VC requirement
+        const exemptUserIds = ["1215330175563071509", "1207844365838323812", this.otherBotId];
+
         if (interaction.isCommand()) {
           const command = this.commandsByName.get(interaction.commandName);
-          if (!command || !interaction.isChatInputCommand()) return;
+
+          if (!command || !interaction.isChatInputCommand()) {
+            return;
+          }
 
           if (!interaction.guild) {
             await interaction.reply(errorMsg('you can\'t use this bot in a DM'));
@@ -69,10 +74,8 @@ export default class {
 
           const requiresVC = command.requiresVC instanceof Function ? command.requiresVC(interaction) : command.requiresVC;
 
-          // VC check with exempt user IDs
-          if (requiresVC && interaction.member && 
-              !this.exemptUserIds.includes(interaction.member.user.id) && 
-              !isUserInVoice(interaction.guild, interaction.member as GuildMember)) {
+          // Modified VC check with exempt user IDs
+          if (requiresVC && interaction.member && !exemptUserIds.includes(interaction.member.user.id) && !isUserInVoice(interaction.guild, interaction.member.user as User)) {
             await interaction.reply({ content: errorMsg('gotta be in a voice channel'), ephemeral: true });
             return;
           }
@@ -82,17 +85,29 @@ export default class {
           }
         } else if (interaction.isButton()) {
           const command = this.commandsByButtonId.get(interaction.customId);
-          if (command && command.handleButtonInteraction) {
+
+          if (!command) {
+            return;
+          }
+
+          if (command.handleButtonInteraction) {
             await command.handleButtonInteraction(interaction);
           }
         } else if (interaction.isAutocomplete()) {
           const command = this.commandsByName.get(interaction.commandName);
-          if (command && command.handleAutocompleteInteraction) {
+
+          if (!command) {
+            return;
+          }
+
+          if (command.handleAutocompleteInteraction) {
             await command.handleAutocompleteInteraction(interaction);
           }
         }
       } catch (error: unknown) {
         debug(error);
+
+        // This can fail if the message was deleted, and we don't want to crash the whole bot
         try {
           if ((interaction.isCommand() || interaction.isButton()) && (interaction.replied || interaction.deferred)) {
             await interaction.editReply(errorMsg(error as Error));
@@ -103,20 +118,20 @@ export default class {
       }
     });
 
+    // Handle message events for the ?play command
     this.client.on('messageCreate', async message => {
-      const content = message.content;
-      if (content.startsWith('/play')) {
-        const args = content.split(' ').slice(1);
-        const songQuery: string = args.join(' '); // Explicitly typing songQuery
+      // Ignore messages from the bot itself
+      if (message.author.bot) return;
 
-        const userId = message.author.id;
-        const member = message.member as GuildMember; // Ensure member is of type GuildMember
+      // Check for the ?play command from the other bot
+      if (message.content.startsWith('?play') && message.author.id === this.otherBotId) {
+        const args = message.content.split(' ').slice(1);
+        const songQuery = args.join(' ');
 
-        if (member && (this.exemptUserIds.includes(userId) || isUserInVoice(message.guild!, member))) {
-          const user: User = member.user; // Extract User from GuildMember
-          // Here, you would call your function to queue the song
-          // For example: await queueSong(songQuery, user);
-          await message.reply('Song queued successfully!'); // Placeholder reply
+        const member = message.member; // Get the member from the message
+        if (member && (exemptUserIds.includes(message.author.id) || isUserInVoice(message.guild!, member))) {
+          await queueSong(songQuery, member.user); // Ensure member is of type User
+          await message.reply('Song queued successfully!');
         } else {
           await message.reply('You need to be in a voice channel to queue a song.');
         }
@@ -128,6 +143,7 @@ export default class {
     this.client.once('ready', async () => {
       debug(generateDependencyReport());
 
+      // Update commands
       const rest = new REST({ version: '10' }).setToken(this.config.DISCORD_TOKEN);
       if (this.shouldRegisterCommandsOnBot) {
         spinner.text = '📡 updating commands on bot...';
@@ -147,6 +163,7 @@ export default class {
               commands: this.commandsByName.map(c => c.slashCommand),
             });
           }),
+          // Remove commands registered on bot (if they exist)
           rest.put(Routes.applicationCommands(this.client.user!.id), { body: [] }),
         ]);
       }
@@ -167,6 +184,7 @@ export default class {
 
     this.client.on('error', console.error);
     this.client.on('debug', debug);
+
     this.client.on('guildCreate', handleGuildCreate);
     this.client.on('voiceStateUpdate', handleVoiceStateUpdate);
     await this.client.login();
