@@ -119,26 +119,23 @@ this.client.on('interactionCreate', async interaction => {
 
 // Add command parsing for messages
 this.client.on('messageCreate', async message => {
-    // Ignore messages from bots to prevent loops
-    if (message.author.bot) return;
+    // ... previous code
 
-    const content = message.content.trim();
-
-    // Check if the message starts with the command prefix (e.g., "/play")
     if (content.startsWith('/play')) {
-        const args = content.split(' ').slice(1); // Get the arguments after the command
-        const songQuery = args.join(' '); // Join arguments to form the song query
+        const args = content.split(' ').slice(1);
+        const songQuery = args.join(' ');
 
-        const userId = message.author.id; // Get the ID of the user (or bot) sending the message
-        if (exemptUserIds.includes(userId) || isUserInVoice(message.guild, message.member)) {
-            // Call your existing queue logic here
-            await queueSong(songQuery, message.member); // Implement your queue logic
+        const userId = message.author.id;
+        const member = message.member; // Get the member from the message
+        if (member && (exemptUserIds.includes(userId) || isUserInVoice(message.guild!, member))) {
+            await queueSong(songQuery, member as User); // Ensure member is of type User
             await message.reply('Song queued successfully!');
         } else {
             await message.reply('You need to be in a voice channel to queue a song.');
         }
     }
 });
+
 
 
     const spinner = ora('📡 connecting to Discord...').start();
