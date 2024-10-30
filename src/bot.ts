@@ -14,7 +14,7 @@ import { generateDependencyReport } from '@discordjs/voice';
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v10';
 import registerCommandsOnGuild from './utils/register-commands-on-guild.js';
-import { ChatInputCommandInteraction } from 'discord.js';
+import { ChatInputCommandInteraction, InteractionReplyOptions, MessagePayload } from 'discord.js';
 
 @injectable()
 export default class {
@@ -55,7 +55,7 @@ export default class {
     }
 
     // Register event handlers
-    this.client.on('interactionCreate', async interaction => {
+    this.client.on('interactionCreate', async (interaction) => {
       try {
         const exemptUserIds = ["1215330175563071509", "1207844365838323812", "1217539821740757032"]; // Replace with actual exempt user IDs
 
@@ -129,16 +129,16 @@ export default class {
 
         if (command && command.execute) {
           // Create a mock interaction
-          const interaction: Partial<ChatInputCommandInteraction> = {
+          const interaction = {
             guild: message.guild,
             member: message.member,
-            reply: async (response) => message.reply(response), // Use message.reply directly
+            reply: async (response: string | MessagePayload | InteractionReplyOptions) => message.reply(response as any), // Use message.reply directly
             options: {
               getString: () => query,
-            } as any, // Use 'any' to avoid type issues, this can be improved with better typing
-          };
+            } as any, // Use 'any' to avoid type issues
+          } as unknown as ChatInputCommandInteraction;
 
-          await command.execute(interaction as ChatInputCommandInteraction);
+          await command.execute(interaction);
         } else {
           message.reply('Could not find the play command.');
         }
