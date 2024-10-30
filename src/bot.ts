@@ -113,8 +113,9 @@ export default class {
         const member = message.member as GuildMember; // Ensure member is of type GuildMember
 
         if (member && (this.exemptUserIds.includes(userId) || isUserInVoice(message.guild!, member))) {
+          const user: User = member.user; // Extract User from GuildMember
           // Here, you would call your function to queue the song
-          // For example: await queueSong(songQuery, member.user);
+          // For example: await queueSong(songQuery, user);
           await message.reply('Song queued successfully!'); // Placeholder reply
         } else {
           await message.reply('You need to be in a voice channel to queue a song.');
