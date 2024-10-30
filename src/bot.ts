@@ -55,63 +55,68 @@ export default class {
 
     // Register event handlers
     // eslint-disable-next-line complexity
-    this.client.on('interactionCreate', async interaction => {
-      try {
-        if (interaction.isCommand()) {
-          const command = this.commandsByName.get(interaction.commandName);
-
-          if (!command || !interaction.isChatInputCommand()) {
-            return;
-          }
-
-          if (!interaction.guild) {
-            await interaction.reply(errorMsg('you can\'t use this bot in a DM'));
-            return;
-          }
-
-          const requiresVC = command.requiresVC instanceof Function ? command.requiresVC(interaction) : command.requiresVC;
-          if (requiresVC && interaction.member && !isUserInVoice(interaction.guild, interaction.member.user as User)) {
-            await interaction.reply({content: errorMsg('gotta be in a voice channel'), ephemeral: true});
-            return;
-          }
-
-          if (command.execute) {
-            await command.execute(interaction);
-          }
-        } else if (interaction.isButton()) {
-          const command = this.commandsByButtonId.get(interaction.customId);
-
-          if (!command) {
-            return;
-          }
-
-          if (command.handleButtonInteraction) {
-            await command.handleButtonInteraction(interaction);
-          }
-        } else if (interaction.isAutocomplete()) {
-          const command = this.commandsByName.get(interaction.commandName);
-
-          if (!command) {
-            return;
-          }
-
-          if (command.handleAutocompleteInteraction) {
-            await command.handleAutocompleteInteraction(interaction);
-          }
-        }
-      } catch (error: unknown) {
-        debug(error);
-
-        // This can fail if the message was deleted, and we don't want to crash the whole bot
-        try {
-          if ((interaction.isCommand() || interaction.isButton()) && (interaction.replied || interaction.deferred)) {
-            await interaction.editReply(errorMsg(error as Error));
-          } else if (interaction.isCommand() || interaction.isButton()) {
-            await interaction.reply({content: errorMsg(error as Error), ephemeral: true});
-          }
-        } catch {}
-      }
-    });
+	this.client.on('interactionCreate', async interaction => {
+	try {
+		// Define user IDs exempt from the VC requirement
+		const exemptUserIds = ["1215330175563071509", "1207844365838323812"]; // Replace with actual exempt user IDs
+	
+		if (interaction.isCommand()) {
+		const command = this.commandsByName.get(interaction.commandName);
+	
+		if (!command || !interaction.isChatInputCommand()) {
+			return;
+		}
+	
+		if (!interaction.guild) {
+			await interaction.reply(errorMsg('you can\'t use this bot in a DM'));
+			return;
+		}
+	
+		const requiresVC = command.requiresVC instanceof Function ? command.requiresVC(interaction) : command.requiresVC;
+		
+		// Modified VC check with exempt user IDs
+		if (requiresVC && interaction.member && !exemptUserIds.includes(interaction.member.user.id) && !isUserInVoice(interaction.guild, interaction.member.user as User)) {
+			await interaction.reply({ content: errorMsg('gotta be in a voice channel'), ephemeral: true });
+			return;
+		}
+	
+		if (command.execute) {
+			await command.execute(interaction);
+		}
+		} else if (interaction.isButton()) {
+		const command = this.commandsByButtonId.get(interaction.customId);
+	
+		if (!command) {
+			return;
+		}
+	
+		if (command.handleButtonInteraction) {
+			await command.handleButtonInteraction(interaction);
+		}
+		} else if (interaction.isAutocomplete()) {
+		const command = this.commandsByName.get(interaction.commandName);
+	
+		if (!command) {
+			return;
+		}
+	
+		if (command.handleAutocompleteInteraction) {
+			await command.handleAutocompleteInteraction(interaction);
+		}
+		}
+	} catch (error: unknown) {
+		debug(error);
+	
+		// This can fail if the message was deleted, and we don't want to crash the whole bot
+		try {
+		if ((interaction.isCommand() || interaction.isButton()) && (interaction.replied || interaction.deferred)) {
+			await interaction.editReply(errorMsg(error as Error));
+		} else if (interaction.isCommand() || interaction.isButton()) {
+			await interaction.reply({ content: errorMsg(error as Error), ephemeral: true });
+		}
+		} catch {}
+	}
+	});
 
     const spinner = ora('📡 connecting to Discord...').start();
 
