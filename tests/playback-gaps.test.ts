@@ -652,7 +652,7 @@ describe('CTRL-20 audio-idle advance preservation', () => {
     player.add(makeQueuedSong('Second'));
     player.add(makeQueuedSong('Third'));
     const send = vi.fn().mockResolvedValue(undefined);
-    Object.assign(player, {currentChannel: {send}});
+    Object.assign(player, {currentChannel: {send, guild: {channels: {cache: new Map()}}}});
     await player.play();
     const priorAudioPlayer = getPrivatePlayer(player).audioPlayer!;
     priorAudioPlayer.stop.mockReturnValue(true);
@@ -687,7 +687,7 @@ describe('CTRL-20 audio-idle advance preservation', () => {
     player.add(current);
     player.add(makeQueuedSong('Upcoming'));
     const send = vi.fn().mockResolvedValue(undefined);
-    Object.assign(player, {currentChannel: {send}});
+    Object.assign(player, {currentChannel: {send, guild: {channels: {cache: new Map()}}}});
     await player.play();
     const priorAudioPlayer = getPrivatePlayer(player).audioPlayer!;
     let emittedIdle = false;
@@ -738,7 +738,7 @@ describe('CTRL-20 audio-idle advance preservation', () => {
     player.add(makeQueuedSong('Second'));
     player.add(makeQueuedSong('Third'));
     const send = vi.fn().mockResolvedValue(undefined);
-    Object.assign(player, {currentChannel: {send}});
+    Object.assign(player, {currentChannel: {send, guild: {channels: {cache: new Map()}}}});
     await player.play();
 
     await player.forward(1);
@@ -751,6 +751,27 @@ describe('CTRL-20 audio-idle advance preservation', () => {
     expect(player.getCurrent()?.title).toBe('Third');
     expect(send).toHaveBeenCalledOnce();
     expect(send).toHaveBeenCalledWith({embeds: [{title: 'playing'}]});
+  });
+
+  it('announces in the text channel the song was requested from', async () => {
+    dependencyMocks.getGuildSettings.mockResolvedValue({
+      autoAnnounceNextSong: true,
+      secondsToWaitAfterQueueEmpties: 0,
+    });
+    const {player} = makeReadyPlayer();
+    player.add({...makeQueuedSong('First'), addedInChannelId: 'music-bot'});
+    player.add({...makeQueuedSong('Second'), addedInChannelId: 'music-bot'});
+    const voiceChatSend = vi.fn().mockResolvedValue(undefined);
+    const textSend = vi.fn().mockResolvedValue(undefined);
+    const textChannel = {isTextBased: () => true, send: textSend};
+    Object.assign(player, {currentChannel: {send: voiceChatSend, guild: {channels: {cache: new Map([['music-bot', textChannel]])}}}});
+    await player.play();
+
+    getPrivatePlayer(player).audioPlayer!.emit('idle', {status: 'playing'}, {status: 'idle'});
+    await flushAsyncWork();
+
+    expect(textSend).toHaveBeenCalledWith({embeds: [{title: 'playing'}]});
+    expect(voiceChatSend).not.toHaveBeenCalled();
   });
 
   it('restarts the same entry from zero when song loop is enabled', async () => {

@@ -1,4 +1,4 @@
-import {VoiceChannel} from 'discord.js';
+import {GuildTextBasedChannel, VoiceChannel} from 'discord.js';
 import {Readable} from 'stream';
 import hasha from 'hasha';
 import {WriteStream} from 'fs-capacitor';
@@ -176,10 +176,10 @@ export default class {
     return voiceConnection;
   }
 
-  // Post a parting shot in the voice channel's chat. Fire-and-forget: a missing
+  // Post a parting shot where the music was requested. Fire-and-forget: a missing
   // send permission shouldn't block leaving.
   sayGoodbye(lines: readonly string[]): void {
-    this.currentChannel?.send(pickLine(lines)).catch(() => undefined);
+    this.getAnnouncementChannel()?.send(pickLine(lines)).catch(() => undefined);
   }
 
   disconnect(): void {
@@ -946,6 +946,15 @@ export default class {
     }
   }
 
+  // The text channel the current (or most recently queued) song was requested in,
+  // falling back to the voice channel's built-in chat.
+  private getAnnouncementChannel(): GuildTextBasedChannel | undefined {
+    const textChannelId = this.getCurrent()?.addedInChannelId ?? this.queue.at(-1)?.addedInChannelId;
+    const textChannel = textChannelId ? this.currentChannel?.guild.channels.cache.get(textChannelId) : undefined;
+
+    return textChannel?.isTextBased() ? textChannel : this.currentChannel;
+  }
+
   private async onVoiceConnectionDisconnect(voiceConnection: VoiceConnection): Promise<void> {
     await recoverVoiceConnection(voiceConnection, {
       isCurrent: candidate => this.voiceConnection === candidate,
@@ -1066,8 +1075,9 @@ export default class {
       // Auto announce the next song if configured to
       const settings = await getGuildSettings(this.guildId);
       const {autoAnnounceNextSong} = settings;
-      if (autoAnnounceNextSong && this.currentChannel) {
-        await this.currentChannel.send({
+      const announcementChannel = this.getAnnouncementChannel();
+      if (autoAnnounceNextSong && announcementChannel) {
+        await announcementChannel.send({
           embeds: [buildPlayingMessageEmbed(this)],
         });
       }
