@@ -27,13 +27,13 @@ export default class implements Command {
     try {
       await player.back();
       await interaction.followUp({
-        content: 'back \'er up\'',
+        content: 'going back. Make up your mind, I\'m not a time machine.',
         embeds: player.getCurrent() ? [buildPlayingMessageEmbed(player)] : [],
       });
       await interaction.deleteReply().catch(() => undefined);
     } catch (error: unknown) {
       if (error instanceof Error && error.message === 'No songs in queue to go back to.') {
-        throw new Error('no song to go back to');
+        throw new Error('nothing to go back to. There\'s no going back, kid. Trust me.');
       }
 
       throw error;

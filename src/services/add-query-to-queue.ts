@@ -19,7 +19,7 @@ const isSameQueueEntry = (capturedId: number | null, currentId: number | null) =
 
 const normalizeSkipError = (error: unknown) => (
   error instanceof Error && error.message === 'No songs in queue to forward to.'
-    ? new Error('no song to skip to')
+    ? new Error('nothing to skip to. The queue\'s empty, genius.')
     : error
 );
 
@@ -72,7 +72,7 @@ export default class AddQueryToQueue {
     let [newSongs, extraMsg] = await this.getSongs.getSongs(query, playlistLimit, shouldSplitChapters);
 
     if (newSongs.length === 0) {
-      throw new Error('no songs found');
+      throw new Error('couldn\'t find any songs. Did you even spell it right?');
     }
 
     if (shuffleAdditions) {
@@ -123,7 +123,7 @@ export default class AddQueryToQueue {
     }
 
     if (!player.getCurrent()) {
-      throw new Error('no playable songs found');
+      throw new Error('couldn\'t play any of that. Not my problem.');
     }
 
     if (shouldShowPlayingEmbed) {
@@ -156,9 +156,9 @@ export default class AddQueryToQueue {
     }
 
     if (newSongs.length === 1) {
-      await interaction.editReply(`u betcha, **${firstSong.title}** added to the${addToFrontOfQueue ? ' front of the' : ''} queue${didSkipCurrentTrack ? ' and current track skipped' : ''}${extraMsg}`);
+      await interaction.editReply(`ugh, fine. **${firstSong.title}** added to the${addToFrontOfQueue ? ' front of the' : ''} queue${didSkipCurrentTrack ? ' and current track skipped' : ''}${extraMsg}`);
     } else {
-      await interaction.editReply(`u betcha, **${firstSong.title}** and ${newSongs.length - 1} other songs were added to the queue${didSkipCurrentTrack ? ' and current track skipped' : ''}${extraMsg}`);
+      await interaction.editReply(`ugh, fine. **${firstSong.title}** and ${newSongs.length - 1} other songs were added to the queue${didSkipCurrentTrack ? ' and current track skipped' : ''}${extraMsg}`);
     }
   }
 

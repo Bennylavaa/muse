@@ -23,10 +23,10 @@ export default class implements Command {
     const player = this.playerManager.get(interaction.guild!.id);
 
     if (!player.voiceConnection) {
-      throw new Error('not connected');
+      throw new Error('I\'m not even in a channel. Pay attention.');
     }
 
     player.stop();
-    await interaction.reply('u betcha, stopped');
+    await interaction.reply('music\'s off. Now go do your chores, they\'ve been sitting there since Tuesday.');
   }
 }

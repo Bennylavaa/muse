@@ -33,15 +33,15 @@ export default class implements Command {
     const to = interaction.options.getInteger('to') ?? 1;
 
     if (from < 1) {
-      throw new Error('position must be at least 1');
+      throw new Error('position must be at least 1. Numbers start at one. I can\'t believe I have to say that.');
     }
 
     if (to < 1) {
-      throw new Error('position must be at least 1');
+      throw new Error('position must be at least 1. Numbers start at one. I can\'t believe I have to say that.');
     }
 
     const {title} = player.move(from, to);
 
-    await interaction.reply('moved **' + title + '** to position **' + String(to) + '**');
+    await interaction.reply('moved **' + title + '** to position **' + String(to) + '**. Don\'t say I never did anything for you.');
   }
 }

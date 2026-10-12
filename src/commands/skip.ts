@@ -28,7 +28,7 @@ export default class implements Command {
     const numToSkip = interaction.options.getInteger('number') ?? 1;
 
     if (numToSkip < 1) {
-      throw new Error('invalid number of songs to skip');
+      throw new Error('invalid number of songs to skip. Learn to count.');
     }
 
     const player = this.playerManager.get(interaction.guild!.id);
@@ -37,13 +37,13 @@ export default class implements Command {
     try {
       await player.forward(numToSkip);
       await interaction.followUp({
-        content: 'keep \'er movin\'',
+        content: 'skipped. You didn\'t like that one either? Unbelievable.',
         embeds: player.getCurrent() ? [buildPlayingMessageEmbed(player)] : [],
       });
       await interaction.deleteReply().catch(() => undefined);
     } catch (error: unknown) {
       if (error instanceof Error && error.message === 'No songs in queue to forward to.') {
-        throw new Error('no song to skip to');
+        throw new Error('nothing to skip to. The queue\'s empty, genius.');
       }
 
       throw error;

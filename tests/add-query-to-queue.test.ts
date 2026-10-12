@@ -178,7 +178,7 @@ describe('AddQueryToQueue skip semantics', () => {
     expect(player.connect).toHaveBeenCalledOnce();
     expect(player.play).toHaveBeenCalledOnce();
     expect(player.forward).not.toHaveBeenCalled();
-    expect(interaction.editReply).toHaveBeenLastCalledWith('u betcha, **New song** added to the queue');
+    expect(interaction.editReply).toHaveBeenLastCalledWith('ugh, fine. **New song** added to the queue');
   });
 
   it('skips a pre-existing current track and reports the skip with correct spacing', async () => {
@@ -191,7 +191,7 @@ describe('AddQueryToQueue skip semantics', () => {
 
     expect(forward).toHaveBeenCalledWith(1);
     expect(player.getCurrent()?.title).toBe('New song');
-    expect(interaction.editReply).toHaveBeenLastCalledWith('u betcha, **New song** added to the queue and current track skipped');
+    expect(interaction.editReply).toHaveBeenLastCalledWith('ugh, fine. **New song** added to the queue and current track skipped');
   });
 
   it('preserves playback startup failures from the skip path', async () => {
@@ -229,7 +229,7 @@ describe('AddQueryToQueue skip semantics', () => {
     expect(player.getCurrent()?.title).toBe('Already upcoming');
     expect(player.getQueue().map(song => song.title)).toEqual(['New song']);
     expect(forward).not.toHaveBeenCalled();
-    expect(interaction.editReply).toHaveBeenLastCalledWith('u betcha, **New song** added to the queue');
+    expect(interaction.editReply).toHaveBeenLastCalledWith('ugh, fine. **New song** added to the queue');
   });
 
   it('does not skip the new current song after the captured entry disappears during song lookup', async () => {
@@ -254,7 +254,7 @@ describe('AddQueryToQueue skip semantics', () => {
     expect(player.getCurrent()?.title).toBe('New song');
     expect(player.getQueue()).toEqual([]);
     expect(forward).not.toHaveBeenCalled();
-    expect(interaction.editReply).toHaveBeenLastCalledWith('u betcha, **New song** added to the queue');
+    expect(interaction.editReply).toHaveBeenLastCalledWith('ugh, fine. **New song** added to the queue');
   });
 
   it('does not treat a looped reuse of the same song object as the captured queue entry', async () => {
@@ -281,7 +281,7 @@ describe('AddQueryToQueue skip semantics', () => {
     expect(player.getCurrent()).toBe(repeatedSong);
     expect(player.getQueue().map(song => song.title)).toEqual(['New song']);
     expect(forward).not.toHaveBeenCalled();
-    expect(interaction.editReply).toHaveBeenLastCalledWith('u betcha, **New song** added to the queue');
+    expect(interaction.editReply).toHaveBeenLastCalledWith('ugh, fine. **New song** added to the queue');
   });
 });
 
@@ -506,7 +506,7 @@ describe('AddQueryToQueue voice connection failures', () => {
     expect(player.getCurrent()).toBe(current);
     expect(player.getQueue().map(song => song.title)).toEqual(['New song']);
     expect(play).toHaveBeenCalledOnce();
-    expect(interaction.editReply).toHaveBeenLastCalledWith('u betcha, **New song** added to the queue (resuming playback)');
+    expect(interaction.editReply).toHaveBeenLastCalledWith('ugh, fine. **New song** added to the queue (resuming playback)');
   });
 });
 
@@ -541,5 +541,5 @@ it.each([STATUS.PAUSED, STATUS.PLAYING])('preserves an established %s session wh
   expect(connect).not.toHaveBeenCalled();
   expect(play).not.toHaveBeenCalled();
   expect(player.getQueue().map(song => song.title)).toEqual(['New song']);
-  expect(interaction.editReply).toHaveBeenLastCalledWith('u betcha, **New song** added to the queue');
+  expect(interaction.editReply).toHaveBeenLastCalledWith('ugh, fine. **New song** added to the queue');
 });

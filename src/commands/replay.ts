@@ -25,11 +25,11 @@ export default class implements Command {
     const currentSong = player.getCurrent();
 
     if (!currentSong) {
-      throw new Error('nothing is playing');
+      throw new Error('nothing is playing. Take your headphones out once in a while.');
     }
 
     if (currentSong.isLive) {
-      throw new Error('can\'t replay a livestream');
+      throw new Error('can\'t replay a livestream. It\'s LIVE. That\'s the whole point.');
     }
 
     await Promise.all([
@@ -37,6 +37,6 @@ export default class implements Command {
       interaction.deferReply(),
     ]);
 
-    await interaction.editReply('👍 replayed the current song');
+    await interaction.editReply('fine, playing it AGAIN. From the top. This is the last time.');
   }
 }

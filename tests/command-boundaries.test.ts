@@ -321,7 +321,7 @@ describe('/queue', () => {
     const embed = buildQueueEmbed(player as never, 1, 10).toJSON();
 
     expect(embed.fields?.find(field => field.name === 'Page')?.value).toBe('1 out of 1');
-    expect(() => buildQueueEmbed(player as never, 2, 10)).toThrow('the queue isn\'t that big');
+    expect(() => buildQueueEmbed(player as never, 2, 10)).toThrow('the queue isn\'t that big. Learn to count, I\'m not your math tutor.');
   });
 
   it('rejects pages below 1 defensively', () => {
@@ -338,7 +338,7 @@ describe('/remove', () => {
     };
     const {interaction, reply} = makeInteraction({integers: {position: 3, range: 1}});
 
-    await expect(new Remove(managerFor(player) as never).execute(interaction)).rejects.toThrow('position is outside the range of the queue');
+    await expect(new Remove(managerFor(player) as never).execute(interaction)).rejects.toThrow('that position isn\'t in the queue');
     expect(player.removeFromQueue).not.toHaveBeenCalled();
     expect(upcoming).toEqual(['first', 'second']);
     expect(reply).not.toHaveBeenCalled();
@@ -355,7 +355,7 @@ describe('/remove', () => {
     await new Remove(managerFor(player) as never).execute(interaction);
 
     expect(upcoming).toEqual(['first']);
-    expect(reply).toHaveBeenCalledWith(':wastebasket: removed');
+    expect(reply).toHaveBeenCalledWith(':wastebasket: removed. Gone. Like my patience.');
   });
 });
 
@@ -370,7 +370,7 @@ describe('queue navigation error boundaries', () => {
     await new Skip(managerFor(player) as never).execute(interaction);
 
     expect(deferReply).toHaveBeenCalledWith({ephemeral: true});
-    expect(followUp).toHaveBeenCalledWith({content: 'keep \'er movin\'', embeds: []});
+    expect(followUp).toHaveBeenCalledWith({content: 'skipped. You didn\'t like that one either? Unbelievable.', embeds: []});
     expect(deleteReply).toHaveBeenCalledOnce();
   });
 
@@ -422,7 +422,7 @@ describe('/stop', () => {
       expect(player.stop).toHaveBeenCalledOnce();
       expect(player.voiceConnection).toBeNull();
       expect(queue).toEqual([]);
-      expect(reply).toHaveBeenCalledWith('u betcha, stopped');
+      expect(reply).toHaveBeenCalledWith('music\'s off. Now go do your chores, they\'ve been sitting there since Tuesday.');
     });
   }
 
@@ -430,7 +430,7 @@ describe('/stop', () => {
     const player = {status: STATUS.PLAYING, voiceConnection: null, stop: vi.fn()};
     const {interaction, reply} = makeInteraction();
 
-    await expect(new Stop(managerFor(player) as never).execute(interaction)).rejects.toThrow('not connected');
+    await expect(new Stop(managerFor(player) as never).execute(interaction)).rejects.toThrow('I\'m not even in a channel');
     expect(player.stop).not.toHaveBeenCalled();
     expect(reply).not.toHaveBeenCalled();
   });
@@ -481,7 +481,7 @@ describe('seek parsing', () => {
 
     expect(player.seek).toHaveBeenCalledWith(0);
     expect(deferReply).toHaveBeenCalledOnce();
-    expect(editReply).toHaveBeenCalledWith('👍 seeked to 00:00');
+    expect(editReply).toHaveBeenCalledWith('jumped to 00:00. Happy? Didn\'t think so.');
   });
 
   it.each([
@@ -503,7 +503,7 @@ describe('seek parsing', () => {
 
     expect(player.seek).toHaveBeenCalledWith(expectedPosition);
     expect(deferReply).toHaveBeenCalledOnce();
-    expect(editReply).toHaveBeenCalledWith(`👍 seeked to ${expectedTime}`);
+    expect(editReply).toHaveBeenCalledWith(`jumped to ${expectedTime}. Happy? Didn't think so.`);
   });
 
   it.each(['0', '-1', 'not-a-time', '1s trailing', '1e999s'])(
@@ -538,7 +538,7 @@ describe('seek parsing', () => {
 
     expect(player.forwardSeek).toHaveBeenCalledWith(15);
     expect(deferReply).toHaveBeenCalledOnce();
-    expect(editReply).toHaveBeenCalledWith('👍 seeked to 00:25');
+    expect(editReply).toHaveBeenCalledWith('jumped to 00:25. Happy? Didn\'t think so.');
   });
 
   it('keeps explicit-positive /fseek +1s valid', async () => {
@@ -556,7 +556,7 @@ describe('seek parsing', () => {
 
     expect(player.forwardSeek).toHaveBeenCalledWith(1);
     expect(deferReply).toHaveBeenCalledOnce();
-    expect(editReply).toHaveBeenCalledWith('👍 seeked to 00:11');
+    expect(editReply).toHaveBeenCalledWith('jumped to 00:11. Happy? Didn\'t think so.');
   });
 });
 
@@ -574,7 +574,7 @@ describe('/loop-queue', () => {
 
     expect(player.loopCurrentSong).toBe(false);
     expect(player.loopCurrentQueue).toBe(true);
-    expect(reply).toHaveBeenCalledWith('looped queue :)');
+    expect(reply).toHaveBeenCalledWith('looping the queue. When you\'re sick of it, don\'t come crying to me.');
   });
 
   it('rejects when there is no upcoming song', async () => {
@@ -586,7 +586,7 @@ describe('/loop-queue', () => {
     };
     const {interaction, reply} = makeInteraction();
 
-    await expect(new LoopQueue(managerFor(player) as never).execute(interaction)).rejects.toThrow('not enough songs to loop a queue!');
+    await expect(new LoopQueue(managerFor(player) as never).execute(interaction)).rejects.toThrow('not enough songs to loop a queue');
     expect(reply).not.toHaveBeenCalled();
   });
 });

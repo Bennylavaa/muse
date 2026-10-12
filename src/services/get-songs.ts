@@ -40,7 +40,7 @@ export default class {
       if (songs) {
         newSongs.push(...songs);
       } else {
-        throw new Error('that doesn\'t exist');
+        throw new Error('that doesn\'t exist. Did you make it up?');
       }
 
       return [newSongs, extraMsg];
@@ -66,14 +66,14 @@ export default class {
         if (songs) {
           newSongs.push(...songs);
         } else {
-          throw new Error('that doesn\'t exist');
+          throw new Error('that doesn\'t exist. Did you make it up?');
         }
       }
     } else if (['soundcloud.com', 'www.soundcloud.com', 'm.soundcloud.com', 'on.soundcloud.com', 'snd.sc'].includes(url.host)) {
       newSongs.push(...await this.soundCloudSource(url.href, playlistLimit));
     } else if (url.protocol === 'spotify:' || url.host === 'open.spotify.com') {
       if (this.spotifyAPI === undefined) {
-        throw new Error('Spotify is not enabled!');
+        throw new Error('Spotify isn\'t set up. Money doesn\'t grow on trees.');
       }
 
       const [convertedSongs, nSongsNotFound, totalSongs] = await this.spotifySource(query, playlistLimit, shouldSplitChapters);
@@ -101,7 +101,7 @@ export default class {
       if (song) {
         newSongs.push(song);
       } else {
-        throw new Error('that doesn\'t exist');
+        throw new Error('that doesn\'t exist. Did you make it up?');
       }
     }
 

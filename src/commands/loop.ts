@@ -24,7 +24,7 @@ export default class implements Command {
     const player = this.playerManager.get(interaction.guild!.id);
 
     if (player.status === STATUS.IDLE) {
-      throw new Error('no song to loop!');
+      throw new Error('no song to loop. Were you even paying attention?');
     }
 
     if (player.loopCurrentQueue) {
@@ -33,6 +33,6 @@ export default class implements Command {
 
     player.loopCurrentSong = !player.loopCurrentSong;
 
-    await interaction.reply((player.loopCurrentSong ? 'looped :)' : 'stopped looping :('));
+    await interaction.reply((player.loopCurrentSong ? 'fine, looping it. Again. And again. This is how I lose my mind.' : 'loop off. The neighbors thank you.'));
   }
 }

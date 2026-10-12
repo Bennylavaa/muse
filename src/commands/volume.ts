@@ -32,11 +32,11 @@ export default class implements Command {
     const currentSong = player.getCurrent();
 
     if (!currentSong) {
-      throw new Error('nothing is playing');
+      throw new Error('nothing is playing. Take your headphones out once in a while.');
     }
 
     const level = interaction.options.getInteger('level') ?? 100;
     player.setVolume(level);
-    await interaction.reply(`Set volume to ${level}%`);
+    await interaction.reply(`volume set to ${level}%. And don't touch the thermostat either.`);
   }
 }

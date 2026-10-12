@@ -35,19 +35,19 @@ export default class implements Command {
     const range = interaction.options.getInteger('range') ?? 1;
 
     if (position < 1) {
-      throw new Error('position must be at least 1');
+      throw new Error('position must be at least 1. Numbers start at one. I can\'t believe I have to say that.');
     }
 
     if (range < 1) {
-      throw new Error('range must be at least 1');
+      throw new Error('range must be at least 1. Use your head.');
     }
 
     if (position > player.queueSize()) {
-      throw new Error('position is outside the range of the queue');
+      throw new Error('that position isn\'t in the queue. Count the songs, then try again.');
     }
 
     player.removeFromQueue(position, range);
 
-    await interaction.reply(':wastebasket: removed');
+    await interaction.reply(':wastebasket: removed. Gone. Like my patience.');
   }
 }

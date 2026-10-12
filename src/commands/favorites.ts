@@ -118,7 +118,7 @@ export default class implements Command {
     });
 
     if (!favorite) {
-      throw new Error('no favorite with that name exists');
+      throw new Error('no favorite with that name. Check your spelling, I\'m not your spellcheck.');
     }
 
     await this.addQueryToQueue.addToQueue({
@@ -139,7 +139,7 @@ export default class implements Command {
     });
 
     if (favorites.length === 0) {
-      await interaction.reply('there aren\'t any favorites yet');
+      await interaction.reply('nobody\'s saved any favorites. Nobody in this house has any taste.');
       return;
     }
 
@@ -171,7 +171,7 @@ export default class implements Command {
     }});
 
     if (existingFavorite) {
-      throw new Error('a favorite with that name already exists');
+      throw new Error('a favorite with that name already exists. Be original for once in your life.');
     }
 
     await prisma.favoriteQuery.create({
@@ -183,7 +183,7 @@ export default class implements Command {
       },
     });
 
-    await interaction.reply('👍 favorite created');
+    await interaction.reply('favorite saved. Don\'t make me regret it.');
   }
 
   private async remove(interaction: ChatInputCommandInteraction) {
@@ -195,17 +195,17 @@ export default class implements Command {
     }});
 
     if (!favorite) {
-      throw new Error('no favorite with that name exists');
+      throw new Error('no favorite with that name. Check your spelling, I\'m not your spellcheck.');
     }
 
     const isUserGuildOwner = interaction.member!.user.id === interaction.guild!.ownerId;
 
     if (favorite.authorId !== interaction.member!.user.id && !isUserGuildOwner) {
-      throw new Error('you can only remove your own favorites');
+      throw new Error('that\'s not your favorite. Hands off other people\'s stuff, we\'ve talked about this.');
     }
 
     await prisma.favoriteQuery.delete({where: {id: favorite.id}});
 
-    await interaction.reply('👍 favorite removed');
+    await interaction.reply('favorite removed. Good riddance.');
   }
 }

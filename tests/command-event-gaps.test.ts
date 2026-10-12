@@ -176,7 +176,7 @@ describe('/config set-wait-after-queue-empties', () => {
       where: {guildId: GUILD_ID},
       data: {secondsToWaitAfterQueueEmpties: delay},
     });
-    expect(reply).toHaveBeenCalledWith('👍 wait delay updated');
+    expect(reply).toHaveBeenCalledWith('wait delay updated. Don\'t touch my settings again.');
   });
 });
 

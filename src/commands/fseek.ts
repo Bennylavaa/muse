@@ -31,27 +31,27 @@ export default class implements Command {
     const currentSong = player.getCurrent();
 
     if (!currentSong) {
-      throw new Error('nothing is playing');
+      throw new Error('nothing is playing. Take your headphones out once in a while.');
     }
 
     if (currentSong.isLive) {
-      throw new Error('can\'t seek in a livestream');
+      throw new Error('can\'t seek in a livestream. It\'s LIVE, sport. Look it up.');
     }
 
     const seekValue = interaction.options.getString('time');
 
     if (!seekValue) {
-      throw new Error('missing seek value');
+      throw new Error('missing seek value. Seek to WHERE? I can\'t read your mind.');
     }
 
     const seekTime = durationStringToSeconds(seekValue);
 
     if (!Number.isFinite(seekTime) || seekTime <= 0) {
-      throw new Error('invalid seek value');
+      throw new Error('invalid seek value. Try again, and this time use your brain.');
     }
 
     if (seekTime + player.getPosition() > currentSong.length) {
-      throw new Error('can\'t seek past the end of the song');
+      throw new Error('can\'t seek past the end of the song. Always rushing. That\'s your whole problem.');
     }
 
     await Promise.all([
@@ -59,6 +59,6 @@ export default class implements Command {
       interaction.deferReply(),
     ]);
 
-    await interaction.editReply(`👍 seeked to ${prettyTime(player.getPosition())}`);
+    await interaction.editReply(`jumped to ${prettyTime(player.getPosition())}. Happy? Didn't think so.`);
   }
 }

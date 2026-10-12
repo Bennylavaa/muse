@@ -94,7 +94,7 @@ export default class implements Command {
         const limit: number = interaction.options.getInteger('limit')!;
 
         if (limit < 1) {
-          throw new Error('invalid limit');
+          throw new Error('invalid limit. Use a real number.');
         }
 
         await prisma.setting.update({
@@ -106,7 +106,7 @@ export default class implements Command {
           },
         });
 
-        await interaction.reply('👍 limit updated');
+        await interaction.reply('limit updated. Don\'t touch my settings again.');
 
         break;
       }
@@ -123,7 +123,7 @@ export default class implements Command {
           },
         });
 
-        await interaction.reply('👍 wait delay updated');
+        await interaction.reply('wait delay updated. Don\'t touch my settings again.');
 
         break;
       }
@@ -140,7 +140,7 @@ export default class implements Command {
           },
         });
 
-        await interaction.reply('👍 leave setting updated');
+        await interaction.reply('leave setting updated. Don\'t touch my settings again.');
 
         break;
       }
@@ -157,7 +157,7 @@ export default class implements Command {
           },
         });
 
-        await interaction.reply('👍 queue add notification setting updated');
+        await interaction.reply('queue add notification setting updated. Don\'t touch my settings again.');
 
         break;
       }
@@ -174,7 +174,7 @@ export default class implements Command {
           },
         });
 
-        await interaction.reply('👍 auto announce setting updated');
+        await interaction.reply('auto announce setting updated. Don\'t touch my settings again.');
 
         break;
       }
@@ -191,7 +191,7 @@ export default class implements Command {
           },
         });
 
-        await interaction.reply('👍 volume setting updated');
+        await interaction.reply('volume setting updated. Don\'t touch my settings again.');
 
         break;
       }
@@ -208,7 +208,7 @@ export default class implements Command {
           },
         });
 
-        await interaction.reply('👍 default queue page size updated');
+        await interaction.reply('default queue page size updated. Don\'t touch my settings again.');
 
         break;
       }
@@ -225,7 +225,7 @@ export default class implements Command {
           },
         });
 
-        await interaction.reply('👍 turn down volume setting updated');
+        await interaction.reply('turn down volume setting updated. Don\'t touch my settings again.');
 
         break;
       }
@@ -242,7 +242,7 @@ export default class implements Command {
           },
         });
 
-        await interaction.reply('👍 turn down volume target setting updated');
+        await interaction.reply('turn down volume target setting updated. Don\'t touch my settings again.');
 
         break;
       }

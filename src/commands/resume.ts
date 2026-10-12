@@ -26,23 +26,23 @@ export default class implements Command {
     const player = this.playerManager.get(interaction.guild!.id);
     const [targetVoiceChannel] = getMemberVoiceChannel(interaction.member as GuildMember) ?? getMostPopularVoiceChannel(interaction.guild!);
     if (player.status === STATUS.PLAYING) {
-      throw new Error('already playing, give me a song name');
+      throw new Error('it\'s already playing. Give me a song name or quit buggin\' me.');
     }
 
     // Must be resuming play
     if (!player.getCurrent()) {
-      throw new Error('nothing to play');
+      throw new Error('nothing to play. What do you want from me, blood?');
     }
 
     await interaction.deferReply({ephemeral: true});
     await player.connect(targetVoiceChannel);
     await player.play();
     if (!player.getCurrent()) {
-      throw new Error('no playable songs found');
+      throw new Error('couldn\'t play any of that. Not my problem.');
     }
 
     await interaction.followUp({
-      content: 'the stop-and-go light is now green',
+      content: 'fine, it\'s back on. And keep it DOWN.',
       embeds: [buildPlayingMessageEmbed(player)],
     });
     await interaction.deleteReply().catch(() => undefined);

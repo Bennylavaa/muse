@@ -24,11 +24,11 @@ export default class implements Command {
     const player = this.playerManager.get(interaction.guild!.id);
 
     if (player.status === STATUS.IDLE) {
-      throw new Error('no songs to loop!');
+      throw new Error('no songs to loop. What am I, a magician?');
     }
 
     if (player.queueSize() < 1) {
-      throw new Error('not enough songs to loop a queue!');
+      throw new Error('not enough songs to loop a queue. One song isn\'t a queue, champ.');
     }
 
     if (player.loopCurrentSong) {
@@ -37,6 +37,6 @@ export default class implements Command {
 
     player.loopCurrentQueue = !player.loopCurrentQueue;
 
-    await interaction.reply((player.loopCurrentQueue ? 'looped queue :)' : 'stopped looping queue :('));
+    await interaction.reply((player.loopCurrentQueue ? 'looping the queue. When you\'re sick of it, don\'t come crying to me.' : 'queue loop off. Thank the Lord.'));
   }
 }

@@ -372,7 +372,7 @@ describe('interaction boundaries', () => {
 
     await invoke(handlers, 'interactionCreate', interaction);
 
-    expect(interaction.reply).toHaveBeenCalledWith('🚫 ope: you can\'t use this bot in a DM');
+    expect(interaction.reply).toHaveBeenCalledWith('😤 for cryin\' out loud: you can\'t use this bot in DMs. I don\'t do one-on-ones. Go ask your mother.');
     expect(command.execute).not.toHaveBeenCalled();
   });
 
@@ -384,7 +384,7 @@ describe('interaction boundaries', () => {
     await invoke(handlers, 'interactionCreate', interaction);
 
     expect(interaction.reply).toHaveBeenCalledWith({
-      content: '🚫 ope: gotta be in a voice channel',
+      content: '😤 for cryin\' out loud: get in a voice channel first. I\'m not playing music to an empty room like some kind of idiot.',
       ephemeral: true,
     });
     expect(command.execute).not.toHaveBeenCalled();
@@ -421,7 +421,7 @@ describe('interaction boundaries', () => {
     expect(command.execute).toHaveBeenCalledOnce();
     expect(command.execute).toHaveBeenCalledWith(list);
     expect(use.reply).toHaveBeenCalledWith({
-      content: '🚫 ope: gotta be in a voice channel',
+      content: '😤 for cryin\' out loud: get in a voice channel first. I\'m not playing music to an empty room like some kind of idiot.',
       ephemeral: true,
     });
   });
@@ -437,7 +437,7 @@ describe('interaction boundaries', () => {
 
     expect(mocks.debug).toHaveBeenCalledWith('Error: command failure');
     expect(errorLog).toHaveBeenCalledWith('Discord interaction failed (/play, guild=guild-id, channel=channel-id, user=member-id): Error: command failure');
-    expect(interaction.reply).toHaveBeenCalledWith({content: '🚫 ope: command failure', ephemeral: true});
+    expect(interaction.reply).toHaveBeenCalledWith({content: '😤 for cryin\' out loud: command failure', ephemeral: true});
     expect(interaction.editReply).not.toHaveBeenCalled();
   });
 
@@ -460,7 +460,7 @@ describe('interaction boundaries', () => {
     expect(errorLog.mock.calls.flat().join(' ')).not.toContain('sessionsecret');
     expect(errorLog.mock.calls.flat().join(' ')).not.toContain('refreshsecret');
     expect(interaction.reply).toHaveBeenCalledWith({
-      content: `🚫 ope: ${sanitized}`,
+      content: `😤 for cryin' out loud: ${sanitized}`,
       ephemeral: true,
     });
   });
@@ -475,7 +475,7 @@ describe('interaction boundaries', () => {
 
     await expect(invoke(handlers, 'interactionCreate', interaction)).resolves.toBeUndefined();
 
-    expect(interaction.editReply).toHaveBeenCalledWith('🚫 ope: command failure');
+    expect(interaction.editReply).toHaveBeenCalledWith('😤 for cryin\' out loud: command failure');
     expect(interaction.reply).not.toHaveBeenCalled();
   });
 });

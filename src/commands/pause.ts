@@ -24,10 +24,10 @@ export default class implements Command {
     const player = this.playerManager.get(interaction.guild!.id);
 
     if (player.status !== STATUS.PLAYING) {
-      throw new Error('not currently playing');
+      throw new Error('nothing\'s playing. You can\'t pause silence, Einstein.');
     }
 
     player.pause();
-    await interaction.reply('the stop-and-go light is now red');
+    await interaction.reply('paused. Finally, some peace and quiet around here.');
   }
 }

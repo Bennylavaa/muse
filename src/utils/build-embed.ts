@@ -83,20 +83,20 @@ export const buildPlayingMessageEmbed = (player: Player): EmbedBuilder => {
 
 export const buildQueueEmbed = (player: Player, page: number, pageSize: number): EmbedBuilder => {
   if (page < 1) {
-    throw new Error('page must be at least 1');
+    throw new Error('page must be at least 1. I pay taxes for that school, you know.');
   }
 
   const currentlyPlaying = player.getCurrent();
 
   if (!currentlyPlaying) {
-    throw new Error('queue is empty');
+    throw new Error('the queue\'s emptier than your college fund. Add something.');
   }
 
   const queueSize = player.queueSize();
   const maxQueuePage = Math.max(1, Math.ceil(queueSize / pageSize));
 
   if (page > maxQueuePage) {
-    throw new Error('the queue isn\'t that big');
+    throw new Error('the queue isn\'t that big. Learn to count, I\'m not your math tutor.');
   }
 
   const queuePageBegin = (page - 1) * pageSize;
