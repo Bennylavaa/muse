@@ -4,12 +4,13 @@ import {TYPES} from '../types.js';
 import PlayerManager from '../managers/player.js';
 import Command from './index.js';
 import {SlashCommandBuilder} from '@discordjs/builders';
+import {pickLine, sayings} from '../utils/stepdad.js';
 
 @injectable()
 export default class implements Command {
   public readonly slashCommand = new SlashCommandBuilder()
     .setName('remove')
-    .setDescription('remove songs from the queue')
+    .setDescription('take songs out of the queue. Good')
     .addIntegerOption(option =>
       option.setName('position')
         .setDescription('position of the song to remove [default: 1]')
@@ -48,6 +49,6 @@ export default class implements Command {
 
     player.removeFromQueue(position, range);
 
-    await interaction.reply(':wastebasket: removed. Gone. Like my patience.');
+    await interaction.reply(pickLine(sayings.remove));
   }
 }

@@ -4,12 +4,13 @@ import {SlashCommandBuilder} from '@discordjs/builders';
 import {TYPES} from '../types.js';
 import PlayerManager from '../managers/player.js';
 import Command from './index.js';
+import {pickLine, sayings} from '../utils/stepdad.js';
 
 @injectable()
 export default class implements Command {
   public readonly slashCommand = new SlashCommandBuilder()
     .setName('clear')
-    .setDescription('clears all songs in queue except currently playing song');
+    .setDescription('clear the queue except the current song. Like your room, but you\'ll actually do it');
 
   public requiresVC = true;
 
@@ -22,6 +23,6 @@ export default class implements Command {
   public async execute(interaction: ChatInputCommandInteraction) {
     this.playerManager.get(interaction.guild!.id).clear();
 
-    await interaction.reply('queue cleared. Now go clean your room.');
+    await interaction.reply(pickLine(sayings.clear));
   }
 }

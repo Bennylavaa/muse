@@ -8,6 +8,12 @@ const mocks = vi.hoisted(() => ({
   settingUpdate: vi.fn(),
 }));
 
+// Pin the stepdad reply pools to their first (canonical) line.
+vi.mock('../src/utils/stepdad.js', async importOriginal => ({
+  ...await importOriginal<typeof import('../src/utils/stepdad.js')>(),
+  pickLine: (lines: readonly string[]) => lines[0],
+}));
+
 vi.mock('../src/utils/get-guild-settings.js', () => ({
   getGuildSettings: mocks.getGuildSettings,
 }));

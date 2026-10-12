@@ -5,12 +5,13 @@ import PlayerManager from '../managers/player.js';
 import Command from './index.js';
 import {SlashCommandBuilder} from '@discordjs/builders';
 import {buildPlayingMessageEmbed} from '../utils/build-embed.js';
+import {pickLine, sayings} from '../utils/stepdad.js';
 
 @injectable()
 export default class implements Command {
   public readonly slashCommand = new SlashCommandBuilder()
     .setName('skip')
-    .setDescription('skip the next songs')
+    .setDescription('skip songs, since nothing\'s ever good enough for you')
     .addIntegerOption(option => option
       .setName('number')
       .setDescription('number of songs to skip [default: 1]')
@@ -37,7 +38,7 @@ export default class implements Command {
     try {
       await player.forward(numToSkip);
       await interaction.followUp({
-        content: 'skipped. You didn\'t like that one either? Unbelievable.',
+        content: pickLine(sayings.skip),
         embeds: player.getCurrent() ? [buildPlayingMessageEmbed(player)] : [],
       });
       await interaction.deleteReply().catch(() => undefined);

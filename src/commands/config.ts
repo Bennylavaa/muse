@@ -9,7 +9,7 @@ import {getGuildSettings} from '../utils/get-guild-settings.js';
 export default class implements Command {
   public readonly slashCommand = new SlashCommandBuilder()
     .setName('config')
-    .setDescription('configure bot settings')
+    .setDescription('change my settings. Hands off unless you pay the bills')
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild.toString())
     .addSubcommand(subcommand => subcommand
       .setName('set-playlist-limit')

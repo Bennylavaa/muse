@@ -5,12 +5,13 @@ import PlayerManager from '../managers/player.js';
 import Command from './index.js';
 import {SlashCommandBuilder} from '@discordjs/builders';
 import {STATUS} from '../services/player.js';
+import {pickLine, sayings} from '../utils/stepdad.js';
 
 @injectable()
 export default class implements Command {
   public readonly slashCommand = new SlashCommandBuilder()
     .setName('loop')
-    .setDescription('toggle looping the current song');
+    .setDescription('loop the current song until I lose my mind');
 
   public requiresVC = true;
 
@@ -33,6 +34,6 @@ export default class implements Command {
 
     player.loopCurrentSong = !player.loopCurrentSong;
 
-    await interaction.reply((player.loopCurrentSong ? 'fine, looping it. Again. And again. This is how I lose my mind.' : 'loop off. The neighbors thank you.'));
+    await interaction.reply(pickLine(player.loopCurrentSong ? sayings.loopOn : sayings.loopOff));
   }
 }

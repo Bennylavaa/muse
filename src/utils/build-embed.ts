@@ -4,6 +4,7 @@ import Player, {MediaSource, QueuedSong, STATUS} from '../services/player.js';
 import getProgressBar from './get-progress-bar.js';
 import {prettyTime} from './time.js';
 import {truncate} from './string.js';
+import {pickLine, sayings} from './stepdad.js';
 
 const getMaxSongTitleLength = (title: string) => {
   // eslint-disable-next-line no-control-regex
@@ -66,10 +67,10 @@ export const buildPlayingMessageEmbed = (player: Player): EmbedBuilder => {
   const message = new EmbedBuilder();
   message
     .setColor(player.status === STATUS.PLAYING ? 'DarkGreen' : 'DarkRed')
-    .setTitle(player.status === STATUS.PLAYING ? 'Now Playing' : 'Paused')
+    .setTitle(player.status === STATUS.PLAYING ? 'Unfortunately Playing' : 'Paused (finally)')
     .setDescription(`
       **${getSongTitle(currentlyPlaying)}**
-      Requested by: <@${requestedBy}>\n
+      Requested by: <@${requestedBy}> (${pickLine(sayings.requestedByJab)})\n
       ${getPlayerUI(player)}
     `)
     .setFooter({text: `Source: ${artist}`});
@@ -118,11 +119,11 @@ export const buildQueueEmbed = (player: Player, page: number, pageSize: number):
   const message = new EmbedBuilder();
 
   let description = `**${getSongTitle(currentlyPlaying)}**\n`;
-  description += `Requested by: <@${requestedBy}>\n\n`;
+  description += `Requested by: <@${requestedBy}> (${pickLine(sayings.requestedByJab)})\n\n`;
   description += `${getPlayerUI(player)}\n\n`;
 
   if (player.getQueue().length > 0) {
-    description += '**Up next:**\n';
+    description += '**Up next (brace yourself):**\n';
     for (const [index, song] of queuedSongs.entries()) {
       // Leave room for a useful hint instead of rejecting the entire /queue response.
       const overflowMessage = `… ${queuedSongs.length - index} more on this page; use a smaller page-size to view them.`;
@@ -136,7 +137,7 @@ export const buildQueueEmbed = (player: Player, page: number, pageSize: number):
   }
 
   message
-    .setTitle(player.status === STATUS.PLAYING ? `Now Playing ${player.loopCurrentSong ? '(loop on)' : ''}` : 'Queued songs')
+    .setTitle(player.status === STATUS.PLAYING ? `Unfortunately Playing ${player.loopCurrentSong ? '(on loop, God help me)' : ''}` : 'Stuff You Made Me Queue')
     .setColor(player.status === STATUS.PLAYING ? 'DarkGreen' : 'NotQuiteBlack')
     .setDescription(description)
     .addFields([{name: 'In queue', value: getQueueInfo(player), inline: true}, {

@@ -6,12 +6,13 @@ import AddQueryToQueue from '../services/add-query-to-queue.js';
 import {TYPES} from '../types.js';
 import {prisma} from '../utils/db.js';
 import {Pagination} from 'pagination.djs';
+import {pickLine, sayings} from '../utils/stepdad.js';
 
 @injectable()
 export default class implements Command {
   public readonly slashCommand = new SlashCommandBuilder()
     .setName('favorites')
-    .setDescription('add a song to your favorites')
+    .setDescription('your so-called favorites')
     .addSubcommand(subcommand => subcommand
       .setName('use')
       .setDescription('use a favorite')
@@ -183,7 +184,7 @@ export default class implements Command {
       },
     });
 
-    await interaction.reply('favorite saved. Don\'t make me regret it.');
+    await interaction.reply(pickLine(sayings.favoriteCreated));
   }
 
   private async remove(interaction: ChatInputCommandInteraction) {
@@ -206,6 +207,6 @@ export default class implements Command {
 
     await prisma.favoriteQuery.delete({where: {id: favorite.id}});
 
-    await interaction.reply('favorite removed. Good riddance.');
+    await interaction.reply(pickLine(sayings.favoriteRemoved));
   }
 }

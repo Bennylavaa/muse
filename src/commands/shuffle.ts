@@ -4,12 +4,13 @@ import {inject, injectable} from 'inversify';
 import PlayerManager from '../managers/player.js';
 import Command from './index.js';
 import {SlashCommandBuilder} from '@discordjs/builders';
+import {pickLine, sayings} from '../utils/stepdad.js';
 
 @injectable()
 export default class implements Command {
   public readonly slashCommand = new SlashCommandBuilder()
     .setName('shuffle')
-    .setDescription('shuffle the current queue');
+    .setDescription('shuffle the queue. Same garbage, different order');
 
   public requiresVC = true;
 
@@ -28,6 +29,6 @@ export default class implements Command {
 
     player.shuffle();
 
-    await interaction.reply('shuffled. Same garbage, different order.');
+    await interaction.reply(pickLine(sayings.shuffle));
   }
 }

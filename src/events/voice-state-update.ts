@@ -5,6 +5,7 @@ import {TYPES} from '../types.js';
 import PlayerManager from '../managers/player.js';
 import {getSizeWithoutBots} from '../utils/channels.js';
 import {getGuildSettings} from '../utils/get-guild-settings.js';
+import {sayings} from '../utils/stepdad.js';
 
 export default async (oldState: VoiceState, newState: VoiceState): Promise<void> => {
   const playerManager = container.get<PlayerManager>(TYPES.Managers.Player);
@@ -31,6 +32,10 @@ export default async (oldState: VoiceState, newState: VoiceState): Promise<void>
 
   const voiceChannel = newState.guild.channels.cache.get(channelId) as VoiceChannel | undefined;
   if (!voiceChannel || (getSizeWithoutBots(voiceChannel) === 0 && leaveIfNoListeners)) {
+    if (voiceChannel) {
+      player.sayGoodbye(sayings.everyoneLeft);
+    }
+
     player.disconnect();
   }
 };

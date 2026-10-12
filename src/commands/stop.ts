@@ -4,12 +4,13 @@ import {TYPES} from '../types.js';
 import {inject, injectable} from 'inversify';
 import PlayerManager from '../managers/player.js';
 import Command from './index.js';
+import {pickLine, sayings} from '../utils/stepdad.js';
 
 @injectable()
 export default class implements Command {
   public readonly slashCommand = new SlashCommandBuilder()
     .setName('stop')
-    .setDescription('stop playback, disconnect, and clear all songs in the queue');
+    .setDescription('turn that racket off, clear the queue, and leave');
 
   public requiresVC = true;
 
@@ -27,6 +28,6 @@ export default class implements Command {
     }
 
     player.stop();
-    await interaction.reply('music\'s off. Now go do your chores, they\'ve been sitting there since Tuesday.');
+    await interaction.reply(pickLine(sayings.stop));
   }
 }

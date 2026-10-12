@@ -7,12 +7,13 @@ import {STATUS} from '../services/player.js';
 import {buildPlayingMessageEmbed} from '../utils/build-embed.js';
 import {getMemberVoiceChannel, getMostPopularVoiceChannel} from '../utils/channels.js';
 import {ChatInputCommandInteraction, GuildMember} from 'discord.js';
+import {pickLine, sayings} from '../utils/stepdad.js';
 
 @injectable()
 export default class implements Command {
   public readonly slashCommand = new SlashCommandBuilder()
     .setName('resume')
-    .setDescription('resume playback');
+    .setDescription('turn the music back on. Keep it down');
 
   public requiresVC = true;
 
@@ -42,7 +43,7 @@ export default class implements Command {
     }
 
     await interaction.followUp({
-      content: 'fine, it\'s back on. And keep it DOWN.',
+      content: pickLine(sayings.resume),
       embeds: [buildPlayingMessageEmbed(player)],
     });
     await interaction.deleteReply().catch(() => undefined);

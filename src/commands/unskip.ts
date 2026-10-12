@@ -5,12 +5,13 @@ import PlayerManager from '../managers/player.js';
 import Command from './index.js';
 import {SlashCommandBuilder} from '@discordjs/builders';
 import {buildPlayingMessageEmbed} from '../utils/build-embed.js';
+import {pickLine, sayings} from '../utils/stepdad.js';
 
 @injectable()
 export default class implements Command {
   public readonly slashCommand = new SlashCommandBuilder()
     .setName('unskip')
-    .setDescription('go back in the queue by one song');
+    .setDescription('go back a song, since you can\'t make up your mind');
 
   public requiresVC = true;
 
@@ -27,7 +28,7 @@ export default class implements Command {
     try {
       await player.back();
       await interaction.followUp({
-        content: 'going back. Make up your mind, I\'m not a time machine.',
+        content: pickLine(sayings.unskip),
         embeds: player.getCurrent() ? [buildPlayingMessageEmbed(player)] : [],
       });
       await interaction.deleteReply().catch(() => undefined);

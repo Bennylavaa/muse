@@ -4,12 +4,13 @@ import {TYPES} from '../types.js';
 import {inject, injectable} from 'inversify';
 import PlayerManager from '../managers/player.js';
 import Command from './index.js';
+import {pickLine, sayings} from '../utils/stepdad.js';
 
 @injectable()
 export default class implements Command {
   public readonly slashCommand = new SlashCommandBuilder()
     .setName('disconnect')
-    .setDescription('pause and disconnect Muse');
+    .setDescription('send me out for cigarettes');
 
   public requiresVC = true;
 
@@ -28,6 +29,6 @@ export default class implements Command {
 
     player.disconnect();
 
-    await interaction.reply('fine. I\'m going out for cigarettes. Don\'t wait up.');
+    await interaction.reply(pickLine(sayings.disconnect));
   }
 }

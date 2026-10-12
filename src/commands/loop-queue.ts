@@ -5,12 +5,13 @@ import PlayerManager from '../managers/player.js';
 import Command from './index.js';
 import {SlashCommandBuilder} from '@discordjs/builders';
 import {STATUS} from '../services/player.js';
+import {pickLine, sayings} from '../utils/stepdad.js';
 
 @injectable()
 export default class implements Command {
   public readonly slashCommand = new SlashCommandBuilder()
     .setName('loop-queue')
-    .setDescription('toggle looping the entire queue');
+    .setDescription('loop the whole queue, because I clearly deserve this');
 
   public requiresVC = true;
 
@@ -37,6 +38,6 @@ export default class implements Command {
 
     player.loopCurrentQueue = !player.loopCurrentQueue;
 
-    await interaction.reply((player.loopCurrentQueue ? 'looping the queue. When you\'re sick of it, don\'t come crying to me.' : 'queue loop off. Thank the Lord.'));
+    await interaction.reply(pickLine(player.loopCurrentQueue ? sayings.loopQueueOn : sayings.loopQueueOff));
   }
 }

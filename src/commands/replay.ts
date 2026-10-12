@@ -4,12 +4,13 @@ import {inject, injectable} from 'inversify';
 import PlayerManager from '../managers/player.js';
 import Command from './index.js';
 import {SlashCommandBuilder} from '@discordjs/builders';
+import {pickLine, sayings} from '../utils/stepdad.js';
 
 @injectable()
 export default class implements Command {
   public readonly slashCommand = new SlashCommandBuilder()
     .setName('replay')
-    .setDescription('replay the current song');
+    .setDescription('play it AGAIN, from the top');
 
   public requiresVC = true;
 
@@ -37,6 +38,6 @@ export default class implements Command {
       interaction.deferReply(),
     ]);
 
-    await interaction.editReply('fine, playing it AGAIN. From the top. This is the last time.');
+    await interaction.editReply(pickLine(sayings.replay));
   }
 }

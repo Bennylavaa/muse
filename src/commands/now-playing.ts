@@ -10,7 +10,7 @@ import {buildPlayingMessageEmbed} from '../utils/build-embed.js';
 export default class implements Command {
   public readonly slashCommand = new SlashCommandBuilder()
     .setName('now-playing')
-    .setDescription('shows the currently played song');
+    .setDescription('show what racket is playing right now');
 
   private readonly playerManager: PlayerManager;
 

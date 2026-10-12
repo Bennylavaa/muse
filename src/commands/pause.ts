@@ -5,12 +5,13 @@ import {inject, injectable} from 'inversify';
 import PlayerManager from '../managers/player.js';
 import {STATUS} from '../services/player.js';
 import Command from './index.js';
+import {pickLine, sayings} from '../utils/stepdad.js';
 
 @injectable()
 export default class implements Command {
   public readonly slashCommand = new SlashCommandBuilder()
     .setName('pause')
-    .setDescription('pause the current song');
+    .setDescription('pause the music and give me five minutes of peace');
 
   public requiresVC = true;
 
@@ -28,6 +29,6 @@ export default class implements Command {
     }
 
     player.pause();
-    await interaction.reply('paused. Finally, some peace and quiet around here.');
+    await interaction.reply(pickLine(sayings.pause));
   }
 }

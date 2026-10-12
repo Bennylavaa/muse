@@ -9,7 +9,7 @@ import {SlashCommandBuilder} from '@discordjs/builders';
 export default class implements Command {
   public readonly slashCommand = new SlashCommandBuilder()
     .setName('move')
-    .setDescription('move songs within the queue')
+    .setDescription('rearrange the queue like you rearrange my garage')
     .addIntegerOption(option =>
       option.setName('from')
         .setDescription('position of the song to move')

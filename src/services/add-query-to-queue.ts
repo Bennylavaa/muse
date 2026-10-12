@@ -12,6 +12,7 @@ import {SponsorBlock} from 'sponsorblock-api';
 import Config from './config.js';
 import KeyValueCacheProvider from './key-value-cache.js';
 import {ONE_HOUR_IN_SECONDS} from '../utils/constants.js';
+import {pickLine, sayings} from '../utils/stepdad.js';
 
 const isSameQueueEntry = (capturedId: number | null, currentId: number | null) => (
   capturedId !== null && capturedId === currentId
@@ -156,9 +157,9 @@ export default class AddQueryToQueue {
     }
 
     if (newSongs.length === 1) {
-      await interaction.editReply(`ugh, fine. **${firstSong.title}** added to the${addToFrontOfQueue ? ' front of the' : ''} queue${didSkipCurrentTrack ? ' and current track skipped' : ''}${extraMsg}`);
+      await interaction.editReply(`${pickLine(sayings.queueAdd)} **${firstSong.title}** added to the${addToFrontOfQueue ? ' front of the' : ''} queue${didSkipCurrentTrack ? ' and current track skipped' : ''}${extraMsg}`);
     } else {
-      await interaction.editReply(`ugh, fine. **${firstSong.title}** and ${newSongs.length - 1} other songs were added to the queue${didSkipCurrentTrack ? ' and current track skipped' : ''}${extraMsg}`);
+      await interaction.editReply(`${pickLine(sayings.queueAdd)} **${firstSong.title}** and ${newSongs.length - 1} other songs were added to the queue${didSkipCurrentTrack ? ' and current track skipped' : ''}${extraMsg}`);
     }
   }
 

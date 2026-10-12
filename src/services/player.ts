@@ -19,6 +19,7 @@ import {
   VoiceConnectionStatus,
 } from '@discordjs/voice';
 import FileCacheProvider from './file-cache.js';
+import {pickLine, sayings} from '../utils/stepdad.js';
 import {PlaybackAttemptTracker, type PlaybackAttemptContext, type PlaybackAttemptToken} from './playback-attempt.js';
 import {
   DEFAULT_VOLUME,
@@ -173,6 +174,12 @@ export default class {
     }
 
     return voiceConnection;
+  }
+
+  // Post a parting shot in the voice channel's chat. Fire-and-forget: a missing
+  // send permission shouldn't block leaving.
+  sayGoodbye(lines: readonly string[]): void {
+    this.currentChannel?.send(pickLine(lines)).catch(() => undefined);
   }
 
   disconnect(): void {
@@ -1081,6 +1088,7 @@ export default class {
         // Make sure we are not accidentally playing
         // when disconnecting
         if (this.status === STATUS.IDLE) {
+          this.sayGoodbye(sayings.idleLeave);
           this.disconnect();
         }
       }, secondsToWaitAfterQueueEmpties * 1000);

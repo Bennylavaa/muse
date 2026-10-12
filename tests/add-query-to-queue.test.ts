@@ -8,6 +8,12 @@ const dependencyMocks = vi.hoisted(() => ({
   getMostPopularVoiceChannel: vi.fn(),
 }));
 
+// Pin the stepdad reply pools to their first (canonical) line.
+vi.mock('../src/utils/stepdad.js', async importOriginal => ({
+  ...await importOriginal<typeof import('../src/utils/stepdad.js')>(),
+  pickLine: (lines: readonly string[]) => lines[0],
+}));
+
 vi.mock('../src/utils/build-embed.js', () => ({
   buildPlayingMessageEmbed: dependencyMocks.buildPlayingMessageEmbed,
 }));

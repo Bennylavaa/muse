@@ -9,7 +9,7 @@ import {SlashCommandBuilder} from '@discordjs/builders';
 export default class implements Command {
   public readonly slashCommand = new SlashCommandBuilder()
     .setName('volume')
-    .setDescription('set current player volume level')
+    .setDescription('set the volume. Keep it DOWN')
     .addIntegerOption(option =>
       option.setName('level')
         .setDescription('volume percentage (0 is muted, 100 is max & default)')

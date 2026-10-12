@@ -32,7 +32,7 @@ export default class implements Command {
 
     this.slashCommand = new SlashCommandBuilder()
       .setName('play')
-      .setDescription('play a song')
+      .setDescription('play a song. Something decent, for once')
       .addStringOption(option => option
         .setName('query')
         .setDescription(queryDescription)

@@ -11,7 +11,7 @@ import {getGuildSettings} from '../utils/get-guild-settings.js';
 export default class implements Command {
   public readonly slashCommand = new SlashCommandBuilder()
     .setName('queue')
-    .setDescription('show the current queue')
+    .setDescription('see how much of this I have to sit through')
     .addIntegerOption(option => option
       .setName('page')
       .setDescription('page of queue to show [default: 1]')
