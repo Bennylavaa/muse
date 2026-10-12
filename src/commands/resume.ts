@@ -35,17 +35,16 @@ export default class implements Command {
       throw new Error('nothing to play. What do you want from me, blood?');
     }
 
-    await interaction.deferReply({ephemeral: true});
+    await interaction.deferReply();
     await player.connect(targetVoiceChannel);
     await player.play();
     if (!player.getCurrent()) {
       throw new Error('couldn\'t play any of that. Not my problem.');
     }
 
-    await interaction.followUp({
+    await interaction.editReply({
       content: pickLine(sayings.resume),
       embeds: [buildPlayingMessageEmbed(player)],
     });
-    await interaction.deleteReply().catch(() => undefined);
   }
 }

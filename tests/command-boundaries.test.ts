@@ -366,18 +366,21 @@ describe('/remove', () => {
 });
 
 describe('queue navigation error boundaries', () => {
-  it('publishes a successful /skip response after privately deferring failures', async () => {
+  it('publishes a successful /skip response by editing a public deferred reply', async () => {
     const player = {
       forward: vi.fn().mockResolvedValue(undefined),
       getCurrent: vi.fn(() => null),
     };
-    const {interaction, deferReply, deleteReply, followUp} = makeInteraction();
+    const {interaction, deferReply, deleteReply, editReply, followUp} = makeInteraction();
 
     await new Skip(managerFor(player) as never).execute(interaction);
 
-    expect(deferReply).toHaveBeenCalledWith({ephemeral: true});
-    expect(followUp).toHaveBeenCalledWith({content: 'skipped. You didn\'t like that one either? Unbelievable.', embeds: []});
-    expect(deleteReply).toHaveBeenCalledOnce();
+    // A follow-up to an ephemeral deferral replaces it and inherits its visibility,
+    // so the response must be edited into a public deferral instead.
+    expect(deferReply).toHaveBeenCalledWith();
+    expect(editReply).toHaveBeenCalledWith({content: 'skipped. You didn\'t like that one either? Unbelievable.', embeds: []});
+    expect(followUp).not.toHaveBeenCalled();
+    expect(deleteReply).not.toHaveBeenCalled();
   });
 
   it('defers /skip and preserves playback startup errors', async () => {
@@ -390,7 +393,7 @@ describe('queue navigation error boundaries', () => {
 
     await expect(new Skip(managerFor(player) as never).execute(interaction)).rejects.toBe(failure);
 
-    expect(deferReply).toHaveBeenCalledWith({ephemeral: true});
+    expect(deferReply).toHaveBeenCalledWith();
     expect(editReply).not.toHaveBeenCalled();
   });
 
@@ -404,7 +407,7 @@ describe('queue navigation error boundaries', () => {
 
     await expect(new Unskip(managerFor(player) as never).execute(interaction)).rejects.toBe(failure);
 
-    expect(deferReply).toHaveBeenCalledWith({ephemeral: true});
+    expect(deferReply).toHaveBeenCalledWith();
     expect(editReply).not.toHaveBeenCalled();
   });
 });
