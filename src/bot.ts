@@ -15,21 +15,8 @@ import {REST} from '@discordjs/rest';
 import {Routes} from 'discord-api-types/v10';
 import registerCommandsOnGuild from './utils/register-commands-on-guild.js';
 
-const describeError = (error: unknown) => {
-  if (!(error instanceof Error)) {
-    return String(error);
-  }
-
-  // The spotify-web-api-node library stringifies unrecognized error bodies into the message
-  if (error.message === '[object Object]' && 'statusCode' in error) {
-    return `Spotify API request failed (HTTP ${String(error.statusCode)})`;
-  }
-
-  return error.message;
-};
-
 const sanitizeErrorDetail = (error: unknown) => {
-  const message = describeError(error);
+  const message = error instanceof Error ? error.message : String(error);
   return message
     .replace(/https?:\/\/\S+/gi, '[URL]')
     .replace(/(["']?\b(?:api[-_]?key|key|token|authorization|cookie)["']?\s*[:=]\s*)(?:["'][^"']*["']|Bearer\s+[^,;\s]+|[^,;\s}\]]+)/gi, '$1[redacted]')
